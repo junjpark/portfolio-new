@@ -15,7 +15,16 @@
   .hero-copy { max-width: min(560px, 42vw); }
   h1 { font-size: clamp(40px, 6vw, 84px); line-height: 1.02; margin: 0 0 22px; font-weight: 600; letter-spacing: -.01em; text-shadow: 0 1px 24px rgba(20,40,50,.25); }
   .lede { font: 400 clamp(16px, 1.4vw, 19px)/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--muted); margin: 0 0 30px; max-width: 30em; }
-  .cta { display: inline-block; font: 600 15px/1 ui-sans-serif, system-ui, sans-serif; color: #1f3434; background: #fffaf0; padding: 14px 22px; border-radius: 999px; text-decoration: none; }
+  .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cta { display: inline-flex; align-items: center; gap: 8px; font: 600 15px/1 ui-sans-serif, system-ui, sans-serif; color: #1f3434; background: #fffaf0; padding: 14px 22px; border-radius: 999px; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(10,30,30,.25); }
+  .cta svg { flex: none; }
+  /* icon links: thin white ring like the reel arrow, frosted glass on hover */
+  .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.9); color: #fff; display: grid; place-items: center;
+    transition: background-color .25s ease, backdrop-filter .25s ease, -webkit-backdrop-filter .25s ease; }
+  .icon-btn svg { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.3)); }
+  .icon-btn:hover { background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
+  .cta:focus-visible, .icon-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   body.dark-text { --ink: #142628; --muted: rgba(20,38,40,.78); }
   body.dark-text h1 { text-shadow: 0 1px 24px rgba(255,250,235,.35); }
   body.dark-text .cta { background: #142628; color: #fffaf0; }
@@ -48,7 +57,21 @@
     <div class="hero-copy">
       <h1>Hi, I'm Justin.</h1>
       <p class="lede">I like building things people enjoy using.</p>
-      <a class="cta" href="#work">See selected work</a>
+      <div class="actions">
+        <!-- TODO: put your resume at resume.pdf (or change the link) -->
+        <a class="cta" href="resume.pdf" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z M14 3v5h5 M9 13h7M9 17h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          View Resume
+        </a>
+        <!-- TODO: your GitHub profile URL -->
+        <a class="icon-btn" href="https://github.com/your-username" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5l-3 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <!-- TODO: your LinkedIn profile URL -->
+        <a class="icon-btn" href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.8 16.2c.6-1.8 1.8-2.6 3.2-2.6s2.6.8 3.2 2.6M14.5 10h3.5M14.5 13.5h3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </a>
+      </div>
     </div>
   </section>
   <section class="below" id="work">
