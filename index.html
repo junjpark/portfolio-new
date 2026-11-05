@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Justin — Portfolio</title>
+<style>
+  :root { --ink: #fffaf0; --muted: rgba(255,250,240,.78); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #2b4646; color: var(--ink); font-family: ui-serif, Georgia, "Times New Roman", serif; }
+  /* the background: fixed, behind everything, ignores the pointer */
+  #river { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; display: block; }
+  main { position: relative; z-index: 1; }
+  .hero { min-height: 100vh; display: flex; align-items: center; padding: 0 clamp(20px, 6vw, 96px); }
+  .hero-copy { max-width: min(560px, 42vw); }
+  .eyebrow { font: 600 13px/1.2 ui-sans-serif, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 18px; }
+  h1 { font-size: clamp(40px, 6vw, 84px); line-height: 1.02; margin: 0 0 22px; font-weight: 600; letter-spacing: -.01em; text-shadow: 0 1px 24px rgba(20,40,50,.25); }
+  .lede { font: 400 clamp(16px, 1.4vw, 19px)/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--muted); margin: 0 0 30px; max-width: 30em; }
+  .cta { display: inline-block; font: 600 15px/1 ui-sans-serif, system-ui, sans-serif; color: #1f3434; background: #fffaf0; padding: 14px 22px; border-radius: 999px; text-decoration: none; }
+  body.dark-text { --ink: #142628; --muted: rgba(20,38,40,.78); }
+  body.dark-text h1 { text-shadow: 0 1px 24px rgba(255,250,235,.35); }
+  body.dark-text .cta { background: #142628; color: #fffaf0; }
+  body.no-text .hero-copy { visibility: hidden; }
+  .below { background: #f5efe2; color: #1d2b2b; padding: 96px clamp(20px, 6vw, 96px); min-height: 70vh; font: 17px/1.7 ui-sans-serif, system-ui, sans-serif; }
+  .below h2 { font-family: ui-serif, Georgia, serif; font-size: 34px; margin: 0 0 12px; }
+  .below .note { color: #5b6a68; margin: 0 0 32px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .card { background: #fffaf0; border-radius: 16px; padding: 22px 22px 18px; min-height: 220px; box-shadow: 0 1px 0 rgba(46,30,24,.08), 0 8px 24px rgba(30,50,50,.08); }
+  .card h3 { font: 600 19px/1.3 ui-serif, Georgia, serif; margin: 0 0 8px; }
+  .card p { margin: 0; color: #4a5856; }
+  /* the reel-up arrow: a thin white ring + caret at the bottom of the hero; frosted glass on hover */
+  .to-top { position: fixed; left: calc(50% - 24px); bottom: clamp(18px, 4vh, 40px); z-index: 20; width: 48px; height: 48px; padding: 0;
+    border-radius: 50%; border: 1.5px solid rgba(255,255,255,.92); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer;
+    transition: background-color .25s ease, backdrop-filter .25s ease, -webkit-backdrop-filter .25s ease, opacity .35s ease, visibility .35s; }
+  .to-top svg { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+  .to-top:hover, .to-top.rf-hooked { background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
+  .to-top:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  .to-top.away { opacity: 0; visibility: hidden; pointer-events: none; }
+  @media (max-width: 720px) {
+    .hero { align-items: flex-end; padding-bottom: 14vh; background: linear-gradient(to top, rgba(18,36,38,.55), rgba(18,36,38,0) 55%); }
+    .hero-copy { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<canvas id="river" aria-hidden="true"></canvas>
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Portfolio · 2026</p>
+      <h1>Hi, I'm Justin.</h1>
+      <p class="lede">I make thoughtful things for the web. This hero is a hand-painted river scene drawn entirely in code, and every catch is a fun fact about me. Click the water to cast. When the float plunges, click to hook, then hold the mouse (or Space) to keep the fish inside the green bar until it's landed.</p>
+      <a class="cta" href="#work">See selected work</a>
+    </div>
+  </section>
+  <section class="below" id="work">
+    <h2>Selected work</h2>
+    <p class="note">Placeholder content so the page scrolls. Swap in your projects.</p>
+    <div class="cards">
+      <article class="card"><h3>Project one</h3><p>A short line about what you built and why it mattered.</p></article>
+      <article class="card"><h3>Project two</h3><p>A short line about what you built and why it mattered.</p></article>
+      <article class="card"><h3>Project three</h3><p>A short line about what you built and why it mattered.</p></article>
+      <article class="card"><h3>Project four</h3><p>A short line about what you built and why it mattered.</p></article>
+    </div>
+  </section>
+</main>
+<button class="to-top" id="to-top" type="button" aria-label="See my work">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 14.5 12 8.5l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+<script src="river-fisher.js"></script>
+<script>
+  // Your fun facts: every fact is caught once (in shuffled order) before any repeats.
+  // Each fish fact is one fish; each treasure fact is one appearance of that treasure.
+  RiverFisher.init(document.getElementById('river'), {
+    facts: {
+      fish: ['[Fun fact #1 about you]', '[Fun fact #2 about you]', '[Fun fact #3 about you]'],
+      jjajangmyeon: ['[Your jjajangmyeon fact]'],
+      bottle: ['[Your message-in-a-bottle fact]'],
+      viola: ['[Your viola fact]'],
+    },
+  });
+  // the arrow: he hooks it, struggles, and hauls the content below up into view
+  const arrow = document.getElementById('to-top');
+  arrow.addEventListener('click', () => RiverFisher.reelUp(arrow, { to: document.getElementById('work') }));
+  // it belongs to the hero: fade it out once the content is in view
+  const syncArrow = () => arrow.classList.toggle('away', window.scrollY > window.innerHeight * 0.35 && !arrow.classList.contains('rf-hooked'));
+  window.addEventListener('scroll', syncArrow, { passive: true }); syncArrow();
+</script>
+</body>
+</html>
