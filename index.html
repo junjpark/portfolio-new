@@ -90,10 +90,10 @@
 <script src="river-fisher.js"></script>
 <script>
   // Your fun facts: every fact is caught once (in shuffled order) before any repeats.
-  // Each fish fact is one fish; each treasure fact is one appearance of that treasure.
+  // Each fact is one appearance of its catch.
   RiverFisher.init(document.getElementById('river'), {
     facts: {
-      fish: ['[Fun fact #1 about you]', '[Fun fact #2 about you]', '[Fun fact #3 about you]'],
+      fish: [],   // no plain fish: every catch is one of the treasures below
       jjajangmyeon: ['Jjajangmyeon is my favorite food, both to eat and to cook!'],
       // linkText becomes a link once you fill in `link`
       bottle: [{ text: 'Click here to go to my food blog! Read about my recipe ideas, my food diary, and more. (Under construction)', linkText: 'Click here to go to my food blog!', link: '' }],
