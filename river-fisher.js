@@ -6,7 +6,7 @@
  * Game: the cursor is the bob. Click the water to cast; click when the float
  *       plunges to hook; hold mouse/Space to keep the fish in the green zone.
  *       Elements matching a, button, input, label… or [data-rf-ignore] are left alone.
- *       interactive:false (or prefers-reduced-motion) gives the passive 60 s loop.
+ *       interactive:false (or prefers-reduced-motion) gives the passive 60 s loop. hint:false hides the how-to bubble.
  * Reel:  RiverFisher.reelUp(buttonEl, { to }): he hooks the button, struggles, and hauls the content below up into view
  *        (`to` = scroll position or element; defaults to the bottom of the hero).
  * Facts: every catch shows a fun-fact card. Pass your own:
@@ -2065,6 +2065,51 @@ function drawTreasure(c, kind, x, y, ang, sc, a, o) {
   c.restore();
 }
 
+
+/* the wordless how-to bubble that floats over him while he idles: 1 click · 2 hold & reel · 3 catches */
+const HINT_ICONS = (() => {
+  const ink = '#25302f', hot = '#e0603f';
+  const mouse = (pressed, extra) => '<svg viewBox="-5 -5 34 40" width="26" height="31" aria-hidden="true">' +
+    '<rect x="4" y="3" width="16" height="26" rx="8" fill="#fff" stroke="' + ink + '" stroke-width="2"/>' +
+    '<path d="M12 3.2A8 8 0 0 0 4.2 11V13H12Z" fill="' + (pressed ? hot : 'none') + '" stroke="none"/>' +
+    '<path d="M12 3v10M4 13h16" stroke="' + ink + '" stroke-width="1.6" fill="none"/>' + (extra || '') + '</svg>';
+  const tap = '<path d="M1 3.5-3 1.8M3.5.5 2-3.2M7.2-.6 7.6-4.4" stroke="' + hot + '" stroke-width="1.8" stroke-linecap="round" fill="none"/>';
+  const hold = '<path d="M7 34h10" stroke="' + hot + '" stroke-width="2.2" stroke-linecap="round"/><circle cx="7" cy="34" r="1.6" fill="' + hot + '"/>';
+  const reel = '<svg viewBox="-2 -1 30 30" width="26" height="26" aria-hidden="true">' +   // a little fishing reel with a crank, spinning
+    '<path d="M7 2.5h10" stroke="' + ink + '" stroke-width="2.4" stroke-linecap="round"/><path d="M12 2.5v4" stroke="' + ink + '" stroke-width="2"/>' +
+    '<circle cx="12" cy="14" r="7.5" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle cx="12" cy="14" r="4.2" fill="none" stroke="' + ink + '" stroke-width="1" opacity=".5"/><circle cx="12" cy="14" r="1.8" fill="' + ink + '"/>' +
+    '<path d="M12 14 18.6 18.4" stroke="' + ink + '" stroke-width="1.8" stroke-linecap="round"/><circle cx="19.4" cy="19" r="2.1" fill="' + hot + '"/>' +
+    '<path d="M2.2 17.5A10.5 10.5 0 0 0 9.2 24.3" stroke="' + hot + '" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M6.4 25.6 9.6 24.4 8.2 21.2" stroke="' + hot + '" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const fish = '<svg viewBox="0 0 34 20" width="31" height="18" aria-hidden="true"><path d="M3 10C8 2 18 1.6 24 9.2L31 4.2 29.4 10 31 15.8 24 10.8C18 18.4 8 18 3 10Z" fill="#dbe5ea" stroke="' + ink + '" stroke-width="1.8" stroke-linejoin="round"/>' +
+    '<path d="M5 9.4C10 4.6 17 4.4 22 8.6" stroke="#5d7189" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="8.4" cy="9" r="1.3" fill="' + ink + '"/></svg>';
+  const bottle = '<svg viewBox="0 0 16 30" width="13" height="25" aria-hidden="true"><rect x="5.5" y="1" width="5" height="4" rx="1" fill="#b0804f" stroke="' + ink + '" stroke-width="1.4"/>' +
+    '<path d="M6 5h4v4l3 3v14.5a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 3 26.5V12l3-3Z" fill="#cfe6d8" stroke="' + ink + '" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<rect x="5.6" y="15" width="4.8" height="8.5" rx="1.2" fill="#f6ecd2" stroke="#9a8a6a" stroke-width=".8"/><path d="M5.6 19h4.8" stroke="#c84a3c" stroke-width="1.2"/></svg>';
+  return [mouse(true, tap), mouse(true, hold) + reel, fish + bottle];
+})();
+function hintBubble() {
+  if (!document.getElementById('rf-hint-style')) {
+    const st = document.createElement('style'); st.id = 'rf-hint-style';
+    st.textContent = '.rf-hint{position:fixed;left:0;top:0;z-index:6;display:flex;align-items:center;gap:12px;padding:8px 13px;background:#fffaf0;border-radius:16px;' +
+      'box-shadow:0 0 0 1.6px rgba(46,30,24,.8),0 10px 24px rgba(16,36,40,.22);pointer-events:none;opacity:0;transform:translateY(8px) scale(.94);transform-origin:50% 100%;' +
+      'transition:opacity .35s ease,transform .45s cubic-bezier(.2,.9,.3,1.25)}' +
+      '.rf-hint.on{opacity:1;transform:none;animation:rf-bob 3.2s ease-in-out .5s infinite}' +
+      '@keyframes rf-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}' +
+      '@media (prefers-reduced-motion:reduce){.rf-hint.on{animation:none}}' +
+      '.rf-hint .rf-s{display:flex;align-items:center;gap:4px}' +
+      '.rf-hint .rf-n{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#25302f;color:#fffaf0;font:700 11px/1 ui-sans-serif,system-ui,sans-serif}' +
+      '.rf-hint .rf-sep{width:1px;align-self:stretch;margin:4px 0;background:rgba(46,30,24,.18)}' +
+      '.rf-hint::after{content:"";position:absolute;left:calc(50% - 8px);bottom:-8px;width:15px;height:15px;background:#fffaf0;transform:rotate(45deg);box-shadow:1.6px 1.6px 0 0 rgba(46,30,24,.8);border-radius:0 0 3px 0}';
+    document.head.appendChild(st);
+  }
+  const el = document.createElement('div');
+  el.className = 'rf-hint'; el.setAttribute('data-rf-ignore', ''); el.setAttribute('role', 'note');
+  el.setAttribute('aria-label', 'How to fish: 1, click the water to cast. 2, when the float plunges click, then hold the mouse to reel. 3, catch fish and treasures, each one a fun fact.');
+  el.innerHTML = HINT_ICONS.map((ic, i) => '<span class="rf-s"><span class="rf-n">' + (i + 1) + '</span>' + ic + '</span>').join('<span class="rf-sep"></span>');
+  document.body.appendChild(el);
+  return el;
+}
+
 /* the fact card: real DOM text so it's crisp, selectable and read out by screen readers */
 function factCard() {
   if (!document.getElementById('rf-fact-style')) {
@@ -2821,7 +2866,7 @@ function createEngine(canvas, opts) {
     E.mouse.x += (E.mouse.tx - E.mouse.x) * k; E.mouse.y += (E.mouse.ty - E.mouse.y) * k;
     const st = Math.min(14, (window.scrollY || 0) * 0.02);
     E.scroll += (st - E.scroll) * Math.min(1, k * 3);
-    if (E.game) { E.game.cursor = toScene(); updateGame(E, dt, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); syncCard(); }
+    if (E.game) { E.game.cursor = toScene(); updateGame(E, dt, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); syncCard(); syncHint(); }
     draw();
     E.raf = requestAnimationFrame(tick);
   }
@@ -2910,6 +2955,23 @@ function createEngine(canvas, opts) {
       requestAnimationFrame(frame);
     });
     return E.reeling;
+  }
+  // the wordless how-to bubble over his head while he idles
+  function syncHint() {
+    const G = E.game; if (!G || o.hint === false) return;
+    const heroH = o.heroHeight || canvas.clientHeight || window.innerHeight;
+    const want = G.state === 'idle' && G.clock - G.st > 1.2 && !E.reeling && !E.scrolledAway && (window.scrollY || 0) < heroH * 0.4;
+    if (want && !E.hint) E.hint = hintBubble();
+    if (!E.hint) return;
+    if (want !== E.hintOn) { E.hintOn = want; if (want) void E.hint.offsetWidth; E.hint.classList.toggle('on', want); }
+    if (want && G.R && E.view) {
+      const v = E.view, rc = canvas.getBoundingClientRect(), px = o.parallax ? E.mouse.x * 7 : 0, py = (o.parallax ? E.mouse.y * 4 : 0) - E.scroll;
+      const h = toW(G.R.headC), ax = h[0], ay = h[1] - 34 * FS;
+      const cx = (ax - v.x0 + px * 0.55) * v.m / v.dpr + rc.left, cy = (ay - v.y0 + py * 0.55) * v.m / v.dpr + rc.top;
+      const el = E.hint, w = el.offsetWidth, hh = el.offsetHeight;
+      el.style.left = clamp(cx - w / 2, 10, window.innerWidth - w - 10) + 'px';
+      el.style.top = clamp(cy - hh - 12, 10, window.innerHeight - hh - 10) + 'px';
+    }
   }
   // the fun-fact card follows the catch he's holding up
   function syncCard() {
@@ -3005,6 +3067,7 @@ function createEngine(canvas, opts) {
       window.removeEventListener('mousedown', onMouseDown); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey);
       document.removeEventListener('mouseout', onOut); root.classList.remove('rf-hide-cursor');
       if (E.card) { E.card.el.remove(); E.card = null; }
+      if (E.hint) { E.hint.remove(); E.hint = null; }
       if (mq && mq.removeEventListener) mq.removeEventListener('change', onMq);
       clearTimeout(rebuildTimer);
       E.L = null; E.sp = null; E.fsCanvas = null;
@@ -3020,7 +3083,7 @@ function createEngine(canvas, opts) {
       get state() { return E.game.state; }, get progress() { return E.game.mg ? E.game.mg.p : 0; }, get fish() { return E.game.fish; }, get clock() { return E.game.clock; }, get mg() { return E.game.mg; },
       pointAt(x, y) { E.game.cursor = [x, y]; E.game.ptrMouse = true; },
       click() { gameDown(E.game); }, get catch() { return E.game.catch; }, forceCatch(kind) { E.game.forceKind = kind; }, press() { E.game.hold = true; }, release() { E.game.hold = false; },
-      step(sec) { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) { E.acc += 1 / 60; const cur = E.game.cursor; updateGame(E, 1 / 60, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); E.game.cursor = cur; } draw(); syncCard(); },
+      step(sec) { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) { E.acc += 1 / 60; const cur = E.game.cursor; updateGame(E, 1 / 60, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); E.game.cursor = cur; } draw(); syncCard(); syncHint(); },
     },
   };
 }
