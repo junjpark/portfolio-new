@@ -1,8 +1,8 @@
 # Logo slots
 
-Save the official logos here and they'll replace the placeholder glyphs automatically (tinted white):
+The logos shown on the GitHub and LinkedIn buttons (white versions, used as-is):
 
 - `github.svg`: the GitHub mark, from https://github.com/logos
 - `linkedin.png`: the LinkedIn "in" bug, from LinkedIn's brand resources (https://brand.linkedin.com)
 
-Any single-color SVG or transparent PNG works. Only its shape is used, so the original color doesn't matter.
+To swap one, replace the file with another white SVG or transparent PNG of the same name.

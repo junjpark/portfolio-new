@@ -1063,7 +1063,9 @@ function drawReflection(c, E, tw) {
   }
 }
 function drawFisherReflection(c, E, tw) {
-  const F = E.fs; if (!F) return;
+  for (const F of [E.fsBack, E.fs]) if (F) reflectSprite(c, F, tw);
+}
+function reflectSprite(c, F, tw) {
   const S = F.cv.width / F.w;
   c.globalAlpha = 0.34;
   // the sprite's bottom edge is the waterline; mirror it downward in rippled strips
@@ -1493,7 +1495,7 @@ function rigAt(t, tw, mod) {
     const sl = lerp(18, 70, plant); G = [butt[0] + d[0] * sl, butt[1] + d[1] * sl];
   }
   if (mod.rf && mod.rfw) G = [lerp(G[0], mod.rf[0], mod.rfw), lerp(G[1], mod.rf[1], mod.rfw)];
-  r.rodA = a; r.bend = bend; r.rodD = d;
+  r.rodA = a; r.bend = bend; r.rodD = d; r.plant = plant;
   r.butt = butt || [G[0] - d[0] * 18, G[1] - d[1] * 18];
   const db = [-Math.cos(a - bend * 0.55), -Math.sin(a - bend * 0.55)];
   r.tip = [r.butt[0] + db[0] * ROD_L, r.butt[1] + db[1] * ROD_L];
@@ -1691,7 +1693,7 @@ function strokeLines(c, lines, w, col) {
 }
 
 /** Paint the fisher (body, no hands/rod) into his own sprite canvas. */
-function paintFisher(c, R, M, P, t) {
+function paintFisher(c, R, M, P, t, which) {
   const T = R.T, parts = [];
   const hem = R.hem;
   // legs
@@ -1699,24 +1701,24 @@ function paintFisher(c, R, M, P, t) {
   for (const [k, a, far] of [[R.kneeF, R.ankleF, 1], [R.kneeN, R.ankleN, 0]]) {
     if (!a) continue;
     const mid = [lerp(k[0], a[0], 0.45), lerp(k[1], a[1], 0.45)];
-    parts.push({ pts: capsule(k, mid, 15.5, 14), m: M.trousers, ks: 4 });
-    parts.push({ pts: capsule([lerp(k[0], a[0], 0.4), lerp(k[1], a[1], 0.4)], [lerp(k[0], a[0], 0.52), lerp(k[1], a[1], 0.52)], 16, 15.5), m: M.lining, ks: 2, rw: 1 });
-    parts.push({ pts: capsule([lerp(k[0], a[0], 0.52), lerp(k[1], a[1], 0.52)], a, 10.5, 8.5), m: far ? M.skinFar : M.skin, ks: 2.5, rw: 1 });
+    parts.push({ pts: capsule(k, mid, 15.5, 14), m: M.trousers, ks: 4, back: far });
+    parts.push({ pts: capsule([lerp(k[0], a[0], 0.4), lerp(k[1], a[1], 0.4)], [lerp(k[0], a[0], 0.52), lerp(k[1], a[1], 0.52)], 16, 15.5), m: M.lining, ks: 2, rw: 1, back: far });
+    parts.push({ pts: capsule([lerp(k[0], a[0], 0.52), lerp(k[1], a[1], 0.52)], a, 10.5, 8.5), m: far ? M.skinFar : M.skin, ks: 2.5, rw: 1, back: far });
     const fd = rot(-12, 2, Math.atan2(a[1] - k[1], a[0] - k[0]) - Math.PI / 2);
-    parts.push({ pts: capsule(a, [a[0] + fd[0], a[1] + fd[1]], 8.5, 7), m: far ? M.skinFar : M.skin, ks: 2, rw: 0.8 });
+    parts.push({ pts: capsule(a, [a[0] + fd[0], a[1] + fd[1]], 8.5, 7), m: far ? M.skinFar : M.skin, ks: 2, rw: 0.8, back: far });
   }
-  parts.push({ pts: capsule(R.hipF, R.kneeF, 21, 15), m: M.trousers, ks: 5 });
+  parts.push({ pts: capsule(R.hipF, R.kneeF, 21, 15), m: M.trousers, ks: 5, back: 1 });
   // far upper arm (behind body)
-  parts.push({ pts: capsule(R.shF, R.elF, 14, 12), m: M.jacketFar, ks: 4, rw: 0.8 });
+  parts.push({ pts: capsule(R.shF, R.elF, 14, 12), m: M.jacketFar, ks: 4, rw: 0.8, back: 1 });
   // cloth bag at the back hip
   const bagA = T(17, 10);
-  parts.push({ pts: xf([[-6, 0], [7, 0], [9.5, 13], [4.5, 20], [-5, 19], [-8.5, 12]], bagA, R.swing * 1.3), m: M.bag, ks: 3.5,
+  parts.push({ pts: xf([[-6, 0], [7, 0], [9.5, 13], [4.5, 20], [-5, 19], [-8.5, 12]], bagA, R.swing * 1.3), m: M.bag, ks: 3.5, back: 1,
     detail: (cc) => strokeLines(cc, [xf([[-5, 4], [0, 6], [6, 4]], bagA, R.swing * 1.3)], 0.7) });
   parts.push({ pts: capsule(R.hipN, R.kneeN, 23, 16), m: M.trousers, ks: 5 });
   // far forearm (tucked behind the body; the hand is drawn over the rod later)
   const fF = [lerp(R.elF[0], R.hF[0], 0.12), lerp(R.elF[1], R.hF[1], 0.12)];
-  parts.push({ pts: capsule(R.elF, [lerp(R.elF[0], R.hF[0], 0.25), lerp(R.elF[1], R.hF[1], 0.25)], 13.5, 13), m: M.jacketFar, ks: 3, rw: 0.8 });
-  parts.push({ pts: capsule(fF, R.hF, 10, 8), m: M.skinFar, ks: 2.5, rw: 1 });
+  parts.push({ pts: capsule(R.elF, [lerp(R.elF[0], R.hF[0], 0.25), lerp(R.elF[1], R.hF[1], 0.25)], 13.5, 13), m: M.jacketFar, ks: 3, rw: 0.8, back: 1 });
+  parts.push({ pts: capsule(fF, R.hF, 10, 8), m: M.skinFar, ks: 2.5, rw: 1, back: 1 });
   // jacket
   const sc = R.ch / 86;
   const J = [[-9, 92], [-19, 86.5], [-22, 70], [-19.5, 45], [-16.5, 22], [-19.5, -2], [-12, -13], [8, -15], [18, -9], [18, 14], [18.5, 44], [19.5, 72], [13.5, 88], [2, 93.5]];
@@ -1814,12 +1816,14 @@ function paintFisher(c, R, M, P, t) {
   const fa = [lerp(eN[0], hN[0], 0.2), lerp(eN[1], hN[1], 0.2)];
   parts.push({ pts: capsule(fa, hN, 10.5, 8.2), m: M.skin, ks: 2.5, rw: 1.3 });
 
+  // which: 'back' = the far side of him (far leg, far arm, bag), 'front' = everything else, undefined = all
+  const list = which ? parts.filter((pt) => (which === 'back') === !!pt.back) : parts;
   // pass 1: heavy silhouette ink; pass 2: cel paint + fine inner ink
   c.lineJoin = 'round'; c.lineCap = 'round';
-  const paths = parts.map((pt) => { const p = new Path2D(); spline(p, pt.pts, true); return p; });
+  const paths = list.map((pt) => { const p = new Path2D(); spline(p, pt.pts, true); return p; });
   c.strokeStyle = INK; c.lineWidth = 2.7;
   for (const p of paths) c.stroke(p);
-  for (const pt of parts) celPart(c, pt, true);
+  for (const pt of list) celPart(c, pt, true);
 
   // light: warm wrap from the sun side, cool-green bounce from the river, leaf dapples
   c.save(); c.globalCompositeOperation = 'source-atop';
@@ -2743,6 +2747,7 @@ function createEngine(canvas, opts) {
     const fk = k * dpr * FS;
     if (!E.fsCanvas || Math.abs(E.fk - fk) > 0.01) {
       E.fk = fk; E.fsCanvas = mkCanvas(280 * fk, 300 * fk); E.fsCtx = E.fsCanvas.getContext('2d');
+      E.fsBackCanvas = mkCanvas(280 * fk, 300 * fk); E.fsBackCtx = E.fsBackCanvas.getContext('2d');
     }
     return S;
   }
@@ -2769,11 +2774,18 @@ function createEngine(canvas, opts) {
     const ta = S.ta !== undefined ? S.ta : t;
     const cs = clamp(34 / (30 * v.k), 1.6, 4.5); S.cs = cs;
     // fisher sprite
-    const fc = E.fsCtx, fk = E.fk;
-    fc.setTransform(1, 0, 0, 1, 0, 0); fc.clearRect(0, 0, E.fsCanvas.width, E.fsCanvas.height);
-    fc.setTransform(fk, 0, 0, fk, 150 * fk, 300 * fk);
-    paintFisher(fc, R, E.M, P, t);
-    E.fs = { cv: E.fsCanvas, x: FISH_X - 150 * FS, y: FISH_Y - 300 * FS, w: 280 * FS, h: 300 * FS };
+    const fk = E.fk;
+    for (const [cv, cx, which] of [[E.fsBackCanvas, E.fsBackCtx, 'back'], [E.fsCanvas, E.fsCtx, 'front']]) {
+      cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+      cx.setTransform(fk, 0, 0, fk, 150 * fk, 300 * fk);
+      paintFisher(cx, R, E.M, P, t, which);
+    }
+    const fx = FISH_X - 150 * FS, fy = FISH_Y - 300 * FS;
+    E.fsBack = { cv: E.fsBackCanvas, x: fx, y: fy, w: 280 * FS, h: 300 * FS };
+    E.fs = { cv: E.fsCanvas, x: fx, y: fy, w: 280 * FS, h: 300 * FS };
+    // the rod is held in his far hand: when the near hand is off it (showing a catch, pushing his hair) or the rod is
+    // swung back over his shoulder, it belongs behind his body and near arm, not across them
+    const rodBehind = (R.lh < 0.5 && (R.plant || 0) < 0.5) || R.rodA > 1.55;
     const L = E.L;
     c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
     // sky, clouds, hills
@@ -2806,9 +2818,11 @@ function createEngine(canvas, opts) {
     base(0.7); drawCanopy(c, E, t);
     // the fisher
     base(0.55);
-    c.drawImage(E.fs.cv, E.fs.x, E.fs.y, E.fs.w, E.fs.h);
+    c.drawImage(E.fsBack.cv, E.fsBack.x, E.fsBack.y, E.fsBack.w, E.fsBack.h);
+    if (!rodBehind) c.drawImage(E.fs.cv, E.fs.x, E.fs.y, E.fs.w, E.fs.h);
     drawLegRipples(c, E, R, t);
     c.save(); c.translate(FISH_X, FISH_Y); c.scale(FS, FS); drawRod(c, R, P); drawHand(c, R.hF, R.elF, E.M, true); c.restore();
+    if (rodBehind) c.drawImage(E.fs.cv, E.fs.x, E.fs.y, E.fs.w, E.fs.h);
     if (!S.noLine) drawLineAndFloat(c, S, P, ta);
     if (S.treasure) drawTreasure(c, S.treasure.kind, S.treasure.x, S.treasure.y, S.treasure.ang, S.treasure.sc, S.treasure.a, S.treasure.o);
     if (S.cork) { c.save(); c.globalAlpha = S.cork.a; c.translate(S.cork.x, S.cork.y); c.rotate(S.cork.ang); c.fillStyle = 'rgb(176,128,80)'; c.strokeStyle = INK; c.lineWidth = 0.9; c.fillRect(-3, -3.4, 6, 6.8); c.strokeRect(-3, -3.4, 6, 6.8); c.restore(); }
