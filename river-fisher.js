@@ -560,7 +560,6 @@ function paintReflection(c, P, L) {
   const blur = 'filter' in c;
   if (blur) c.filter = 'blur(1.6px)';
   c.drawImage(L.sky.cv, L.sky.x, L.sky.y, L.sky.w, L.sky.h);
-  for (const cl of L.clouds) c.drawImage(cl.cv, cl.x, cl.y, cl.w, cl.h);
   c.drawImage(L.far.cv, L.far.x, L.far.y, L.far.w, L.far.h);
   if (blur) c.filter = 'none';
   c.restore();
@@ -900,11 +899,11 @@ function wind(x, t) {
 function buildLayout() {
   const Y = {};
   Y.clouds = [
-    { x: 960, y: 498, w: 660, h: 300, seed: 11, n: 60, amp: 9, ph: 0.3 },
-    { x: 1330, y: 468, w: 400, h: 210, seed: 12, n: 40, amp: 7, ph: 2.1 },
-    { x: 300, y: 372, w: 320, h: 64, flat: 1, seed: 13, n: 30, amp: 11, ph: 4.0, alpha: 0.7 },
-    { x: 640, y: 262, w: 230, h: 42, flat: 1, seed: 14, n: 22, amp: 8, ph: 1.0, alpha: 0.55 },
-    { x: 110, y: 486, w: 380, h: 92, flat: 1, seed: 15, n: 34, amp: 6, ph: 5.0, alpha: 0.85 },
+    { x: 960, y: 498, w: 660, h: 300, seed: 11, n: 60, amp: 9, ph: 0.3, v: 3.2 },
+    { x: 1330, y: 468, w: 400, h: 210, seed: 12, n: 40, amp: 7, ph: 2.1, v: 4.2 },
+    { x: 300, y: 372, w: 320, h: 64, flat: 1, seed: 13, n: 30, amp: 11, ph: 4.0, alpha: 0.7, v: 7.5 },
+    { x: 640, y: 262, w: 230, h: 42, flat: 1, seed: 14, n: 22, amp: 8, ph: 1.0, alpha: 0.55, v: 9.5 },
+    { x: 110, y: 486, w: 380, h: 92, flat: 1, seed: 15, n: 34, amp: 6, ph: 5.0, alpha: 0.85, v: 5.5 },
   ];
   Y.clumps = [
     [1185, 262, 58], [1250, 212, 70], [1300, 300, 62], [1255, 338, 44], [1330, 372, 46], [1370, 232, 74], [1440, 300, 58],
@@ -987,13 +986,44 @@ function buildLayout() {
 /* ------------------------------------------------------------------ */
 /*  Per-frame drawing: sky & clouds                                    */
 /* ------------------------------------------------------------------ */
-function drawClouds(c, E, t) {
+/** clouds drift slowly left → right with the breeze, wrapping around off-screen (on a free-running clock) */
+function cloudPos(cl, ct) {
+  const d = cl.d, span = 2300 + cl.w, x0 = cl.x + 260 + cl.w;   // from fully off the left edge to fully off the right
+  const x = ((x0 + (d.v || 0) * ct) % span + span) % span - 260 - cl.w;
+  return [x + d.amp * 0.4 * Math.sin(ct * 0.05 + d.ph), cl.y + 0.8 * Math.sin(ct * 0.09 + d.ph)];
+}
+function drawClouds(c, E) {
+  const ct = E.cloudT || 0;
   for (const cl of E.L.clouds) {
-    const d = cl.d, dx = d.amp * Math.sin(TAU * t / LOOP + d.ph);
-    c.globalAlpha = d.alpha || 1;
-    c.drawImage(cl.cv, cl.x + dx, cl.y + 0.6 * Math.sin(TAU * 2 * t / LOOP + d.ph), cl.w, cl.h);
+    const q = cloudPos(cl, ct);
+    c.globalAlpha = cl.d.alpha || 1;
+    c.drawImage(cl.cv, q[0], q[1], cl.w, cl.h);
   }
   c.globalAlpha = 1;
+}
+/** their reflections move with them, broken up by the same ripples as the rest of the water */
+function drawCloudReflections(c, E, tw) {
+  const ct = E.cloudT || 0;
+  if (!E.cloudClip) {   // only the open water below the mirrored far hills, away from the dark right bank
+    const p = new Path2D(); p.moveTo(-80, 1226 - ridgeA(-80) + 6);
+    for (let x = -80; x <= 1240; x += 20) p.lineTo(x, 1226 - ridgeA(x) + 6);
+    p.lineTo(1240, 1160); p.lineTo(-80, 1160); p.closePath(); E.cloudClip = p;
+  }
+  c.save(); c.clip(E.cloudClip);
+  const n = 12;
+  for (const cl of E.L.clouds) {
+    const q = cloudPos(cl, ct); if (q[0] > 1300 || q[0] + cl.w < -80) continue;
+    const S = cl.cv.height / cl.h, bh = cl.h / n;
+    c.globalAlpha = 0.42 * (cl.d.alpha || 1);
+    for (let k = 0; k < n; k++) {
+      const ym = 1226 - (q[1] + (k + 0.5) * bh), p = persp(ym), z = 2400 / Math.max(10, ym - 586);
+      const off = (0.35 + 5.2 * p * p) * (0.62 * Math.sin(z * 0.95 - TAU * 31 * tw / LOOP + 0.3) + 0.38 * Math.sin(z * 2.35 + TAU * 47 * tw / LOOP));
+      c.save(); c.translate(0, 1226); c.scale(1, -1);
+      c.drawImage(cl.cv, 0, k * bh * S, cl.cv.width, bh * S + 0.5, q[0] + off, q[1] + k * bh, cl.w, bh + 0.3);
+      c.restore();
+    }
+  }
+  c.globalAlpha = 1; c.restore();
 }
 
 /* ------------------------------------------------------------------ */
@@ -2790,12 +2820,13 @@ function createEngine(canvas, opts) {
     c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
     // sky, clouds, hills
     base(0.05); c.drawImage(L.sky.cv, L.sky.x, L.sky.y, L.sky.w, L.sky.h);
-    base(0.1); drawClouds(c, E, t);
+    base(0.1); drawClouds(c, E);
     base(0.2); c.drawImage(L.far.cv, L.far.x, L.far.y, L.far.w, L.far.h); drawHeron(c, E, t);
     // river
     base(0.35);
     c.save(); c.clip(WPATH);
     drawReflection(c, E, tw);
+    drawCloudReflections(c, E, tw);
     drawFishShadows(c, E, t, tw);
     if (S.under) { c.save(); c.globalAlpha = S.under.a; c.translate(S.under.x, S.under.y); c.rotate(Math.PI); c.scale(0.8, 0.5); c.drawImage(E.fishShadow, -46, -20); c.restore(); }
     drawShins(c, E, R);
@@ -2888,6 +2919,7 @@ function createEngine(canvas, opts) {
     if (E.rm && E.last && now - E.lastDraw < 80) { E.raf = requestAnimationFrame(tick); return; }
     E.last = now; E.lastDraw = now;
     E.acc = (E.acc + dt) % (LOOP * 1000);
+    if (!E.rm) E.cloudT = (E.cloudT || 0) + dt;
     const k = 1 - Math.exp(-dt * 2.5);
     E.mouse.x += (E.mouse.tx - E.mouse.x) * k; E.mouse.y += (E.mouse.ty - E.mouse.y) * k;
     const st = Math.min(14, (window.scrollY || 0) * 0.02);
