@@ -2009,6 +2009,8 @@ const CATCHES = {
   jjajangmyeon: { label: 'a bowl of jjajangmyeon' },
   bottle: { label: 'a note in a bottle' },
   viola: { label: 'an old viola' },
+  tinikling: { label: 'a pair of Tinikling sticks' },
+  hongkong: { label: 'a Hong Kong neon sign' },
 };
 const DEFAULT_FACTS = {
   fish: ['[Fun fact #1 about you. Set facts.fish in RiverFisher.init()]', '[Fun fact #2 about you]', '[Fun fact #3 about you]'],
@@ -2017,7 +2019,8 @@ const DEFAULT_FACTS = {
   viola: ['[A viola fact. Set facts.viola]'],
 };
 // where the hand grips each treasure (item-local units), and how it's tilted when shown off
-const GRIP = { jjajangmyeon: { dx: -3, dy: 14, ang: 0, s: 1.3, lift: 78 }, bottle: { dx: 2, dy: -2, ang: -0.45, s: 1.3, lift: 64 }, viola: { dx: 0, dy: 33, ang: -0.22, s: 1.35, lift: 140 } };
+const GRIP = { jjajangmyeon: { dx: -3, dy: 14, ang: 0, s: 1.3, lift: 78 }, bottle: { dx: 2, dy: -2, ang: -0.45, s: 1.3, lift: 64 }, viola: { dx: 0, dy: 33, ang: -0.22, s: 1.35, lift: 140 },
+  tinikling: { dx: -20, dy: 0, ang: -2.2, s: 1.05, lift: 118 }, hongkong: { dx: 0, dy: 24, ang: 0, s: 1.05, lift: 96 } };
 function drawBowl(c) {
   // a white restaurant bowl, glossy black-bean sauce, noodles, cucumber, chopsticks
   const body = new Path2D();
@@ -2065,6 +2068,49 @@ function drawBottle(c, o) {
   c.beginPath(); c.moveTo(-14, -3.8); c.lineTo(5, -3.8); c.stroke();
   c.strokeStyle = INK; c.lineWidth = 0.9; c.stroke(g);
 }
+function drawTinikling(c) {
+  // two long bamboo poles held together near one end, the way dancers carry them off the floor
+  for (const [oy, tilt, len] of [[-3.6, -0.04, 112], [3.6, 0.035, 106]]) {
+    c.save(); c.rotate(tilt); c.translate(0, oy);
+    const x0 = -36, x1 = x0 + len, r = 3.3;
+    const body = new Path2D();
+    body.moveTo(x0, -r); body.lineTo(x1, -r * 0.88); body.quadraticCurveTo(x1 + 2, 0, x1, r * 0.88); body.lineTo(x0, r); body.quadraticCurveTo(x0 - 2, 0, x0, -r); body.closePath();
+    c.lineWidth = 2.2; c.strokeStyle = INK; c.stroke(body);
+    c.fillStyle = 'rgb(208,174,100)'; c.fill(body);
+    c.save(); c.clip(body);
+    c.fillStyle = 'rgb(163,126,64)'; c.fillRect(x0 - 3, r * 0.15, len + 6, r);                // cel shadow underneath
+    c.fillStyle = 'rgba(255,244,210,0.75)'; c.fillRect(x0 + 2, -r * 0.72, len - 4, 1.1);     // sheen along the top
+    c.restore();
+    c.strokeStyle = 'rgb(112,82,40)'; c.lineWidth = 1.3;                                       // bamboo nodes
+    c.beginPath(); for (let x = x0 + 13; x < x1 - 5; x += 19) { c.moveTo(x, -r); c.lineTo(x + 0.6, r); } c.stroke();
+    c.lineWidth = 0.9; c.strokeStyle = INK; c.stroke(body);
+    c.fillStyle = 'rgb(120,88,44)'; c.beginPath(); c.ellipse(x1 + 0.4, 0, 1.2, r * 0.75, 0, 0, TAU); c.fill();   // the hollow end
+    c.restore();
+  }
+}
+function drawNeonSign(c) {
+  // a little "Welcome to Hong Kong" neon sign on a dark board
+  const w = 80, h = 48, x = -w / 2, y = -h / 2;
+  const board = new Path2D(); board.moveTo(x + 6, y); board.arcTo(x + w, y, x + w, y + h, 6); board.arcTo(x + w, y + h, x, y + h, 6); board.arcTo(x, y + h, x, y, 6); board.arcTo(x, y, x + w, y, 6); board.closePath();
+  c.lineWidth = 2.4; c.strokeStyle = INK; c.stroke(board);
+  c.fillStyle = 'rgb(26,28,52)'; c.fill(board);
+  c.save(); c.clip(board); c.fillStyle = 'rgba(255,255,255,0.06)'; c.fillRect(x, y, w, h * 0.42); c.restore();
+  const neon = (draw, col, glow) => {   // a glowing tube: coloured halo, then a hot pale core
+    c.save(); c.shadowColor = col; c.shadowBlur = glow; c.strokeStyle = col; c.fillStyle = col; draw(); draw(); c.restore();
+    c.save(); c.globalAlpha = 0.85; c.strokeStyle = 'rgba(255,248,252,0.9)'; c.fillStyle = 'rgba(255,248,252,0.9)'; c.lineWidth *= 0.45; draw(); c.restore();
+  };
+  // a pink tube border
+  c.lineWidth = 1.6;
+  neon(() => { c.beginPath(); c.rect(x + 4.5, y + 4.5, w - 9, h - 9); c.stroke(); }, 'rgb(255,92,178)', 7);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.font = '700 7.4px "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif';
+  neon(() => c.fillText('WELCOME TO', 0, y + 13.5), 'rgb(92,232,255)', 6);
+  c.font = '900 13.5px "Arial Black", "Helvetica Neue", Arial, sans-serif';
+  neon(() => c.fillText('HONG KONG', 0, y + 26), 'rgb(255,98,186)', 8);
+  c.font = '700 8px "PingFang HK", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif';
+  neon(() => c.fillText('香港', 0, y + 37.5), 'rgb(255,214,92)', 6);
+  c.textAlign = 'start'; c.textBaseline = 'alphabetic';
+}
 function drawViola(c) {
   // an old, water-stained viola with a strand of river weed caught on it
   const B = [[0, -18], [10, -16], [12.5, -9], [10, -3], [8, 2], [9.5, 8], [14, 16], [13, 26], [6, 31], [0, 32], [-6, 31], [-13, 26], [-14, 16], [-9.5, 8], [-8, 2], [-10, -3], [-12.5, -9], [-10, -16]];
@@ -2098,7 +2144,8 @@ function drawTreasure(c, kind, x, y, ang, sc, a, o) {
   c.save(); c.globalAlpha = a; c.translate(x, y); c.rotate(ang); c.scale(sc * g.s, sc * g.s); c.translate(-g.dx, -g.dy);
   c.lineJoin = 'round'; c.lineCap = 'round';
   if (g.img) c.drawImage(g.img, -g.size / 2, -g.size / 2, g.size, g.size);   // a catch supplied as an image
-  else if (kind === 'jjajangmyeon') drawBowl(c); else if (kind === 'bottle') drawBottle(c, o); else drawViola(c);
+  else if (kind === 'jjajangmyeon') drawBowl(c); else if (kind === 'bottle') drawBottle(c, o);
+  else if (kind === 'tinikling') drawTinikling(c); else if (kind === 'hongkong') drawNeonSign(c); else drawViola(c);
   c.restore();
 }
 
@@ -2160,6 +2207,17 @@ function hintBubble(M, P) {
 }
 
 /* the fact card: real DOM text so it's crisp, selectable and read out by screen readers */
+/** a fact is a string, or { text, linkText, link }: the linkText part of the text becomes a link (plain text until link is set) */
+function setFactText(el, f) {
+  el.textContent = '';
+  const text = typeof f === 'string' ? f : (f && f.text) || '';
+  const lt = f && typeof f === 'object' && f.linkText, i = lt ? text.indexOf(lt) : -1;
+  if (i < 0) { el.textContent = text; return; }
+  el.append(text.slice(0, i));
+  const a = document.createElement(f.link ? 'a' : 'span');
+  if (f.link) { a.href = f.link; a.target = '_blank'; a.rel = 'noopener'; } else a.className = 'rf-soon';
+  a.textContent = lt; el.append(a, text.slice(i + lt.length));
+}
 function factCard() {
   if (!document.getElementById('rf-fact-style')) {
     const st = document.createElement('style'); st.id = 'rf-fact-style';
@@ -2168,7 +2226,7 @@ function factCard() {
       'opacity:0;transform:translateY(10px) scale(.94) rotate(-1.2deg);transform-origin:85% 100%;transition:opacity .3s ease,transform .4s cubic-bezier(.2,.9,.3,1.25);pointer-events:none;cursor:auto}' +
       '.rf-fact.on{opacity:1;transform:rotate(-1.2deg);pointer-events:auto}' +
       '.rf-fact .rf-k{display:block;font:700 11.5px/1.2 ui-sans-serif,system-ui,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#9a6430;margin:0 0 6px}' +
-      '.rf-fact .rf-t{margin:0}' +
+      '.rf-fact .rf-t{margin:0}.rf-fact .rf-t a{color:#b4562c;font-weight:600;text-decoration:underline;text-underline-offset:2px}.rf-fact .rf-t .rf-soon{font-weight:600}' +
       '.rf-fact .rf-go{margin-top:10px;font:600 13px/1 ui-sans-serif,system-ui,sans-serif;background:#25302f;color:#fffaf0;border:0;border-radius:999px;padding:7px 13px;cursor:pointer}' +
       '.rf-fact::after{content:"";position:absolute;right:26px;bottom:-9px;width:16px;height:16px;background:#fffaf0;transform:rotate(45deg);box-shadow:1.6px 1.6px 0 0 rgba(46,30,24,.8);border-radius:0 0 3px 0}';
     document.head.appendChild(st);
@@ -2730,7 +2788,7 @@ function createEngine(canvas, opts) {
   E.game = o.interactive !== false && !E.rm ? createGame() : null;
   if (E.game) {
     const F = {}; for (const k in DEFAULT_FACTS) F[k] = DEFAULT_FACTS[k];
-    if (o.facts) for (const k in o.facts) if (Array.isArray(o.facts[k])) F[k] = o.facts[k].map(String);
+    if (o.facts) for (const k in o.facts) if (Array.isArray(o.facts[k])) F[k] = o.facts[k].map((f) => (f && typeof f === 'object' ? f : String(f)));
     E.game.facts = F; E.game.onCatch = o.onCatch || null;
     // extra catches supplied as images: { kind: { src, label, size } }. Each joins the pool once its image has loaded.
     if (o.catchImages) for (const kind in o.catchImages) {
@@ -3053,7 +3111,7 @@ function createEngine(canvas, opts) {
     if (!E.card) return;
     if (want !== E.cardInfo) {
       E.cardInfo = want;
-      if (want) { E.card.k.textContent = 'Catch #' + want.n + ' · ' + want.label; E.card.t.textContent = want.fact; void E.card.el.offsetWidth; E.card.el.classList.add('on'); }
+      if (want) { E.card.k.textContent = 'Catch #' + want.n + ' · ' + want.label; setFactText(E.card.t, want.fact); void E.card.el.offsetWidth; E.card.el.classList.add('on'); }
       else E.card.el.classList.remove('on');
     }
     if (want && E.view) {

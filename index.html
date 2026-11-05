@@ -94,10 +94,13 @@
   RiverFisher.init(document.getElementById('river'), {
     facts: {
       fish: ['[Fun fact #1 about you]', '[Fun fact #2 about you]', '[Fun fact #3 about you]'],
-      jjajangmyeon: ['[Your jjajangmyeon fact]'],
-      bottle: ['[Your message-in-a-bottle fact]'],
-      viola: ['[Your viola fact]'],
-      overwatch: ['[Your Overwatch fact]'],
+      jjajangmyeon: ['Jjajangmyeon is my favorite food, both to eat and to cook!'],
+      // linkText becomes a link once you fill in `link`
+      bottle: [{ text: 'Click here to go to my food blog! Read about my recipe ideas, my food diary, and more. (Under construction)', linkText: 'Click here to go to my food blog!', link: '' }],
+      viola: ["I played the viola for over 10 years, and my favorite piece I've played is the Debussy String Quartet!"],
+      overwatch: ['I used to play Overwatch semi-professionally, ranking in the top 50 players in the US!'],
+      tinikling: [{ text: 'I took a leap of faith and joined Tinikling last year, and it was my best decision in college! Watch us perform here.', linkText: 'Watch us perform here', link: '' }],
+      hongkong: ["I'm currently studying AI/ML abroad in Hong Kong at HKUST!"],
     },
     // extra catches drawn from an image file (only appear once the file exists)
     catchImages: {
