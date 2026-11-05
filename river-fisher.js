@@ -9,6 +9,8 @@
  *       interactive:false (or prefers-reduced-motion) gives the passive 60 s loop. hint:false hides the how-to bubble.
  * Reel:  RiverFisher.reelUp(buttonEl, { to }): he hooks the button, struggles, and hauls the content below up into view
  *        (`to` = scroll position or element; defaults to the bottom of the hero).
+ * Extra catches from images: catchImages: { overwatch: { src: 'catches/overwatch.svg', label: 'an Overwatch emblem', size: 36 } }
+ *       (pair each with facts.<kind>). A catch only joins the pool once its image loads.
  * Facts: every catch shows a fun-fact card. Pass your own:
  *       RiverFisher.init(canvas, { facts: { fish: ['…', '…'], jjajangmyeon: ['…'], bottle: ['…'], viola: ['…'] },
  *                                  onCatch: (c) => console.log(c.kind, c.fact) })
@@ -2095,7 +2097,8 @@ function drawTreasure(c, kind, x, y, ang, sc, a, o) {
   const g = GRIP[kind]; if (!g || a <= 0.01 || sc <= 0.01) return;
   c.save(); c.globalAlpha = a; c.translate(x, y); c.rotate(ang); c.scale(sc * g.s, sc * g.s); c.translate(-g.dx, -g.dy);
   c.lineJoin = 'round'; c.lineCap = 'round';
-  if (kind === 'jjajangmyeon') drawBowl(c); else if (kind === 'bottle') drawBottle(c, o); else drawViola(c);
+  if (g.img) c.drawImage(g.img, -g.size / 2, -g.size / 2, g.size, g.size);   // a catch supplied as an image
+  else if (kind === 'jjajangmyeon') drawBowl(c); else if (kind === 'bottle') drawBottle(c, o); else drawViola(c);
   c.restore();
 }
 
@@ -2729,6 +2732,17 @@ function createEngine(canvas, opts) {
     const F = {}; for (const k in DEFAULT_FACTS) F[k] = DEFAULT_FACTS[k];
     if (o.facts) for (const k in o.facts) if (Array.isArray(o.facts[k])) F[k] = o.facts[k].map(String);
     E.game.facts = F; E.game.onCatch = o.onCatch || null;
+    // extra catches supplied as images: { kind: { src, label, size } }. Each joins the pool once its image has loaded.
+    if (o.catchImages) for (const kind in o.catchImages) {
+      const ci = o.catchImages[kind], img = new Image(), size = ci.size || 36;
+      img.onload = () => {
+        CATCHES[kind] = { label: ci.label || 'a treasure' };
+        GRIP[kind] = { dx: 0, dy: size * 0.45, ang: 0, s: 1, lift: size + 26, img, size };   // held up from its bottom edge
+        if (!F[kind]) F[kind] = ['[A fact for ' + (ci.label || kind) + '. Set facts.' + kind + ']'];
+        if (E.game) E.game.bag = null;   // reshuffle so it can turn up
+      };
+      img.src = ci.src;
+    }
   }
   E.ptr = null;
   if (E.game && o.hideCursor !== false && !document.getElementById('rf-cursor-style')) {
