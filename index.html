@@ -30,13 +30,20 @@
   body.dark-text h1 { text-shadow: 0 1px 24px rgba(255,250,235,.35); }
   body.dark-text .cta { background: #142628; color: #fffaf0; }
   body.no-text .hero-copy { visibility: hidden; }
-  .below { background: #f5efe2; color: #1d2b2b; padding: 96px clamp(20px, 6vw, 96px); min-height: 70vh; font: 17px/1.7 ui-sans-serif, system-ui, sans-serif; }
-  .below h2 { font-family: ui-serif, Georgia, serif; font-size: 34px; margin: 0 0 12px; }
-  .below .note { color: #5b6a68; margin: 0 0 32px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
-  .card { background: #fffaf0; border-radius: 16px; padding: 22px 22px 18px; min-height: 220px; box-shadow: 0 1px 0 rgba(46,30,24,.08), 0 8px 24px rgba(30,50,50,.08); }
-  .card h3 { font: 600 19px/1.3 ui-serif, Georgia, serif; margin: 0 0 8px; }
-  .card p { margin: 0; color: #4a5856; }
+  /* selected work: a masonry image board, small gutters, tight edges */
+  .below { background: #f6f3ee; padding: clamp(14px, 2.4vw, 32px); min-height: 100vh; }
+  .board { columns: 3 300px; column-gap: clamp(12px, 1.4vw, 20px); }
+  .tile { position: relative; display: block; break-inside: avoid; margin: 0 0 clamp(12px, 1.4vw, 20px); overflow: hidden; background: #e7e2d9; color: #fff; text-decoration: none; }
+  .tile img { display: block; width: 100%; height: auto; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+  .tile .ph { display: block; width: 100%; }
+  /* hover: darken, show the project's kicker + title (only when the tile has them) */
+  .tile .info { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px; padding: 24px;
+    background: rgba(30,34,34,.62); opacity: 0; transition: opacity .3s ease; }
+  .tile .info small { font: 600 13px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+  .tile .info strong { font: 700 clamp(18px, 1.8vw, 24px)/1.2 ui-sans-serif, system-ui, sans-serif; }
+  .tile.has-info:hover .info, .tile.has-info:focus-visible .info { opacity: 1; }
+  .tile:hover img { transform: scale(1.03); }
+  .tile:focus-visible { outline: 3px solid #e2b15a; outline-offset: 2px; }
   /* the reel-up arrow: a thin white ring + caret at the bottom of the hero; frosted glass on hover */
   .to-top { position: fixed; left: calc(50% - 24px); bottom: clamp(18px, 4vh, 40px); z-index: 20; width: 48px; height: 48px; padding: 0;
     border-radius: 50%; border: 1.5px solid rgba(255,255,255,.92); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer;
@@ -72,15 +79,8 @@
       </div>
     </div>
   </section>
-  <section class="below" id="work">
-    <h2>Selected work</h2>
-    <p class="note">Placeholder content so the page scrolls. Swap in your projects.</p>
-    <div class="cards">
-      <article class="card"><h3>Project one</h3><p>A short line about what you built and why it mattered.</p></article>
-      <article class="card"><h3>Project two</h3><p>A short line about what you built and why it mattered.</p></article>
-      <article class="card"><h3>Project three</h3><p>A short line about what you built and why it mattered.</p></article>
-      <article class="card"><h3>Project four</h3><p>A short line about what you built and why it mattered.</p></article>
-    </div>
+  <section class="below" id="work" aria-label="Selected work">
+    <div class="board" id="board"></div>
   </section>
 </main>
 <button class="to-top" id="to-top" type="button" aria-label="See my work">
@@ -99,6 +99,39 @@
       viola: ['[Your viola fact]'],
     },
   });
+  // Selected work: one entry per tile. Add `src` (an image in work/), and optionally a title, kicker and link.
+  // Tiles without an image show as a soft placeholder at the given aspect ratio (w × h) so the layout is visible.
+  const WORK = [
+    { w: 4, h: 4 }, { w: 4, h: 3.6 }, { w: 4, h: 4 },
+    { w: 4, h: 5 }, { w: 4, h: 2.9 }, { w: 4, h: 5.2 },
+    { w: 4, h: 3 }, { w: 4, h: 4.4 }, { w: 4, h: 3.4 },
+    // e.g. { src: 'work/blue-bee-hill.jpg', w: 1600, h: 1600, kicker: 'Linel', title: 'Blue Bee Hill', href: 'https://…' },
+  ];
+  (function renderBoard() {
+    const board = document.getElementById('board');
+    const tones = ['#e4ddd2', '#dfe4dc', '#e7e0d6', '#dde2e4', '#e9e3da', '#e1ddd5', '#e5e1d7', '#dbe1dc', '#e8e2db'];
+    WORK.forEach((it, i) => {
+      const t = document.createElement(it.href ? 'a' : 'div');
+      t.className = 'tile' + (it.title || it.kicker ? ' has-info' : '');
+      if (it.href) { t.href = it.href; t.target = '_blank'; t.rel = 'noopener'; }
+      if (it.src) {
+        const img = new Image(); img.src = it.src; img.alt = it.title || ''; img.loading = 'lazy'; img.decoding = 'async';
+        if (it.w && it.h) { img.width = it.w; img.height = it.h; }
+        t.appendChild(img);
+      } else {
+        const ph = document.createElement('span'); ph.className = 'ph';
+        ph.style.aspectRatio = (it.w || 1) + ' / ' + (it.h || 1); ph.style.background = tones[i % tones.length];
+        t.appendChild(ph); t.setAttribute('aria-hidden', 'true');
+      }
+      if (it.title || it.kicker) {
+        const info = document.createElement('span'); info.className = 'info';
+        if (it.kicker) { const k = document.createElement('small'); k.textContent = it.kicker; info.appendChild(k); }
+        if (it.title) { const s = document.createElement('strong'); s.textContent = it.title; info.appendChild(s); }
+        t.appendChild(info);
+      }
+      board.appendChild(t);
+    });
+  })();
   // the arrow: he hooks it, struggles, and hauls the content below up into view
   const arrow = document.getElementById('to-top');
   // it belongs to the hero: fade it out once the content is in view

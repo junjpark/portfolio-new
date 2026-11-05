@@ -11,7 +11,8 @@ A hand-painted, anime-style river scene drawn entirely in code (Canvas 2D, no im
 
 | File | What it is |
 |---|---|
-| `index.html` | The page: hero, project section and the reel-up arrow |
+| `index.html` | The page: hero, the selected-work image board and the reel-up arrow |
+| `work/` | Project images for the board (see `work/README.md`) |
 | `river-fisher.js` | The scene, the game and the fact cards (one self-contained file) |
 
 ## Run it
