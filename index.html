@@ -45,6 +45,15 @@
   .tile.has-info:hover .info, .tile.has-info:focus-visible .info { opacity: 1; }
   .tile:hover img { transform: scale(1.03); }
   .tile:focus-visible { outline: 3px solid #e2b15a; outline-offset: 2px; }
+  /* featured tile (e.g. what I'm working on now): a warm ring + a label that stays visible */
+  .tile.featured { box-shadow: 0 0 0 3px #e2b15a, 0 12px 32px -8px rgba(196,138,40,.55); }
+  .tile .badge { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 11px 6px 9px; border-radius: 999px; background: #e2b15a; color: #2a1d08;
+    font: 700 11.5px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0,0,0,.22); }
+  .tile .badge i { width: 7px; height: 7px; border-radius: 50%; background: #2a1d08; animation: badge-pulse 1.8s ease-in-out infinite; }
+  @keyframes badge-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+  @media (prefers-reduced-motion: reduce) { .tile .badge i { animation: none; } }
   /* the reel-up arrow: a thin white ring + caret at the bottom of the hero; frosted glass on hover */
   .to-top { position: fixed; left: calc(50% - 24px); bottom: clamp(18px, 4vh, 40px); z-index: 20; width: 48px; height: 48px; padding: 0;
     border-radius: 50%; border: 1.5px solid rgba(255,255,255,.92); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer;
@@ -108,18 +117,19 @@
       overwatch: { src: 'catches/overwatch.svg', label: 'an Overwatch emblem', size: 36 },
     },
   });
-  // Selected work: one entry per tile. Add `src` (an image in work/), and optionally a title, kicker and link.
+  // Selected work: one entry per tile, in reading order (top-left → bottom-right). Add `src` (an image in work/),
+  // and optionally a title, kicker, link (`href`) and `badge` (highlights the tile with a label).
   // Tiles without an image show as a soft placeholder at the given aspect ratio (w × h) so the layout is visible.
   const WORK = [
-    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review' },
     { src: 'work/peoples-voice-dashboard.jpg', w: 2000, h: 1099, kicker: 'Data visualization', title: "People's Voice Survey Dashboard" },
-    { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU' },
     { src: 'work/mobility-project.jpg', w: 1920, h: 1080, kicker: 'WashU Digital Transformation', title: 'Mobility Project' },
-    { src: 'work/cory.jpg', w: 1680, h: 904, kicker: 'Computer vision', title: 'cory' },
-    { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance' },
-    { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1' },
     { src: 'work/tailor.jpg', w: 2000, h: 1124, title: 'tailor' },
+    { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU' },
+    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Currently working on' },
     { src: 'work/filipino-heritage-ar.jpg', w: 2000, h: 1121, kicker: 'Proof-of-concept proposal', title: 'Revitalizing Filipino Heritage Through AR' },
+    { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1' },
+    { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance' },
+    { src: 'work/cory.jpg', w: 1680, h: 904, kicker: 'Computer vision', title: 'cory' },
     // e.g. { src: 'work/blue-bee-hill.jpg', w: 1600, h: 1600, kicker: 'Linel', title: 'Blue Bee Hill', href: 'https://…' },
   ];
   (function renderBoard() {
@@ -128,7 +138,7 @@
     const tones = ['#e4ddd2', '#dfe4dc', '#e7e0d6', '#dde2e4', '#e9e3da', '#e1ddd5', '#e5e1d7', '#dbe1dc', '#e8e2db'];
     WORK.forEach((it, i) => {
       const t = document.createElement(it.href ? 'a' : 'div');
-      t.className = 'tile' + (it.title || it.kicker ? ' has-info' : '');
+      t.className = 'tile' + (it.title || it.kicker ? ' has-info' : '') + (it.badge ? ' featured' : '');
       if (it.href) { t.href = it.href; t.target = '_blank'; t.rel = 'noopener'; }
       if (it.src) {
         const img = new Image(); img.src = it.src; img.alt = it.title || ''; img.loading = 'lazy'; img.decoding = 'async';
@@ -145,17 +155,21 @@
         if (it.title) { const s = document.createElement('strong'); s.textContent = it.title; info.appendChild(s); }
         t.appendChild(info);
       }
+      if (it.badge) {
+        const b = document.createElement('span'); b.className = 'badge';
+        b.innerHTML = '<i aria-hidden="true"></i>'; b.append(it.badge); t.appendChild(b);
+      }
       tiles.push({ el: t, ratio: (it.h || 1) / (it.w || 1) });
     });
-    // lay tiles out left → right in reading order, each into the shortest column (Pinterest-style)
+    // deal tiles into columns left → right, row by row, so the board reads in WORK order
     let cols = 0;
     const layout = () => {
       const w = board.clientWidth, n = w >= 1000 ? 3 : w >= 600 ? 2 : 1;
       if (n === cols) return; cols = n;
       board.textContent = '';
-      const colEls = [], heights = [];
-      for (let c = 0; c < n; c++) { const el = document.createElement('div'); el.className = 'col'; board.appendChild(el); colEls.push(el); heights.push(0); }
-      for (const tl of tiles) { const c = heights.indexOf(Math.min(...heights)); colEls[c].appendChild(tl.el); heights[c] += tl.ratio + 0.02; }
+      const colEls = [];
+      for (let c = 0; c < n; c++) { const el = document.createElement('div'); el.className = 'col'; board.appendChild(el); colEls.push(el); }
+      tiles.forEach((tl, i) => colEls[i % n].appendChild(tl.el));
     };
     layout(); window.addEventListener('resize', layout);
   })();
