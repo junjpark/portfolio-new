@@ -3138,7 +3138,9 @@ function createEngine(canvas, opts) {
   const root = document.documentElement;
   const onPtrMove = (e) => {
     if (!E.game) return;
-    const rc = canvas.getBoundingClientRect(), inside = e.clientX >= rc.left && e.clientX <= rc.right && e.clientY >= rc.top && e.clientY <= rc.bottom;
+    // only where the river is actually showing: above the bottom of the hero (content below covers the fixed canvas)
+    const rc = canvas.getBoundingClientRect(), heroBottom = rc.top + (o.heroHeight || canvas.clientHeight || window.innerHeight) - (window.scrollY || 0);
+    const inside = e.clientX >= rc.left && e.clientX <= rc.right && e.clientY >= rc.top && e.clientY <= Math.min(rc.bottom, heroBottom);
     const ui = isUI(e.target);
     E.ptr = inside && !ui ? [e.clientX, e.clientY] : (inside && E.game.state === 'fight' ? [e.clientX, e.clientY] : null);
     E.game.ptrMouse = e.pointerType === 'mouse';
@@ -3146,11 +3148,17 @@ function createEngine(canvas, opts) {
   };
   const onPtrDown = (e) => {
     if (!E.game || e.button !== 0 || isUI(e.target) || E.destroyed) return;
-    onPtrMove(e); E.game.cursor = toScene();
+    onPtrMove(e);
+    if (!E.ptr && E.game.state !== 'fight') return;   // clicked on page content below the hero: not a cast
+    E.game.cursor = toScene();
     gameDown(E.game); kick();
   };
   const onPtrUp = () => { if (E.game) E.game.hold = false; };
-  const onMouseDown = (e) => { if (E.game && e.button === 0 && !isUI(e.target)) e.preventDefault(); };   // no text-selection drags while fishing
+  const onMouseDown = (e) => {
+    if (!E.game || e.button !== 0 || isUI(e.target)) return;
+    const rc = canvas.getBoundingClientRect(), heroBottom = rc.top + (o.heroHeight || canvas.clientHeight || window.innerHeight) - (window.scrollY || 0);
+    if (e.clientY <= heroBottom) e.preventDefault();   // no text-selection drags while fishing (content below stays selectable)
+  };   // no text-selection drags while fishing
   const onKey = (e) => {
     if (!E.game || e.code !== 'Space' || isUI(document.activeElement) || E.game.state !== 'fight') return;
     e.preventDefault(); E.game.hold = e.type === 'keydown';
