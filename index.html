@@ -32,8 +32,9 @@
   body.no-text .hero-copy { visibility: hidden; }
   /* selected work: a masonry image board, small gutters, tight edges */
   .below { background: #f6f3ee; padding: clamp(14px, 2.4vw, 32px); min-height: 100vh; }
-  .board { columns: 3 300px; column-gap: clamp(12px, 1.4vw, 20px); }
-  .tile { position: relative; display: block; break-inside: avoid; margin: 0 0 clamp(12px, 1.4vw, 20px); overflow: hidden; background: #e7e2d9; color: #fff; text-decoration: none; }
+  .board { --gap: clamp(12px, 1.4vw, 20px); display: flex; align-items: flex-start; gap: var(--gap); }
+  .board .col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--gap); }
+  .tile { position: relative; display: block; overflow: hidden; background: #e7e2d9; color: #fff; text-decoration: none; }
   .tile img { display: block; width: 100%; height: auto; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
   .tile .ph { display: block; width: 100%; }
   /* hover: darken, show the project's kicker + title (only when the tile has them) */
@@ -121,6 +122,7 @@
   ];
   (function renderBoard() {
     const board = document.getElementById('board');
+    const tiles = [];
     const tones = ['#e4ddd2', '#dfe4dc', '#e7e0d6', '#dde2e4', '#e9e3da', '#e1ddd5', '#e5e1d7', '#dbe1dc', '#e8e2db'];
     WORK.forEach((it, i) => {
       const t = document.createElement(it.href ? 'a' : 'div');
@@ -141,8 +143,19 @@
         if (it.title) { const s = document.createElement('strong'); s.textContent = it.title; info.appendChild(s); }
         t.appendChild(info);
       }
-      board.appendChild(t);
+      tiles.push({ el: t, ratio: (it.h || 1) / (it.w || 1) });
     });
+    // lay tiles out left → right in reading order, each into the shortest column (Pinterest-style)
+    let cols = 0;
+    const layout = () => {
+      const w = board.clientWidth, n = w >= 1000 ? 3 : w >= 600 ? 2 : 1;
+      if (n === cols) return; cols = n;
+      board.textContent = '';
+      const colEls = [], heights = [];
+      for (let c = 0; c < n; c++) { const el = document.createElement('div'); el.className = 'col'; board.appendChild(el); colEls.push(el); heights.push(0); }
+      for (const tl of tiles) { const c = heights.indexOf(Math.min(...heights)); colEls[c].appendChild(tl.el); heights[c] += tl.ratio + 0.02; }
+    };
+    layout(); window.addEventListener('resize', layout);
   })();
   // the arrow: he hooks it, struggles, and hauls the content below up into view
   const arrow = document.getElementById('to-top');
