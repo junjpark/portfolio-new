@@ -45,15 +45,13 @@
   .tile.has-info:hover .info, .tile.has-info:focus-visible .info { opacity: 1; }
   .tile:hover img { transform: scale(1.03); }
   .tile:focus-visible { outline: 3px solid #e2b15a; outline-offset: 2px; }
-  /* featured tile (e.g. what I'm working on now): a warm ring + a label that stays visible */
-  .tile.featured { box-shadow: 0 0 0 3px #e2b15a, 0 12px 32px -8px rgba(196,138,40,.55); }
-  .tile .badge { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 7px;
-    padding: 6px 11px 6px 9px; border-radius: 999px; background: #e2b15a; color: #2a1d08;
-    font: 700 11.5px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase;
-    box-shadow: 0 2px 8px rgba(0,0,0,.22); }
-  .tile .badge i { width: 7px; height: 7px; border-radius: 50%; background: #2a1d08; animation: badge-pulse 1.8s ease-in-out infinite; }
-  @keyframes badge-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
-  @media (prefers-reduced-motion: reduce) { .tile .badge i { animation: none; } }
+  /* featured tile (e.g. my current project): a hairline ring + a quiet label */
+  .tile.featured { box-shadow: 0 0 0 1.5px rgba(201,154,72,.85); }
+  .tile .badge { position: absolute; top: 10px; left: 10px; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 9px 5px 8px; border-radius: 999px; background: rgba(28,30,30,.5); color: rgba(255,255,255,.92);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    font: 600 10px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+  .tile .badge i { width: 5px; height: 5px; border-radius: 50%; background: #e2b15a; }
   /* the reel-up arrow: a thin white ring + caret at the bottom of the hero; frosted glass on hover */
   .to-top { position: fixed; left: calc(50% - 24px); bottom: clamp(18px, 4vh, 40px); z-index: 20; width: 48px; height: 48px; padding: 0;
     border-radius: 50%; border: 1.5px solid rgba(255,255,255,.92); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer;
@@ -125,7 +123,7 @@
     { src: 'work/mobility-project.jpg', w: 1920, h: 1080, kicker: 'WashU Digital Transformation', title: 'Mobility Project' },
     { src: 'work/tailor.jpg', w: 2000, h: 1124, title: 'tailor' },
     { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU' },
-    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Currently working on' },
+    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Current project' },
     { src: 'work/filipino-heritage-ar.jpg', w: 2000, h: 1121, kicker: 'Proof-of-concept proposal', title: 'Revitalizing Filipino Heritage Through AR' },
     { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1' },
     { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance' },
