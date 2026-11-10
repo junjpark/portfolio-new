@@ -16,7 +16,7 @@ The hero sits on top of **The River Fisher**, a hand-painted, anime-style river 
 | `river-fisher.js` | The scene, the game, the catches and the fact cards (~3,300 lines, one self-contained IIFE exposing `window.RiverFisher`) |
 | `work/`           | Project images for the board, listed in `WORK` (see `work/README.md`) |
 | `catches/`        | Image-based catches, listed under `catchImages` (see `catches/README.md`). Currently `overwatch.svg` |
-| `icons/`          | White logos for the hero's icon buttons: `github.svg`, `linkedin.png` (see `icons/README.md`) |
+| `icons/`          | White logos for the hero's icon buttons: `github.svg`, `linkedin.png`, `mail.svg` (see `icons/README.md`) |
 | `resume.pdf`      | Resume, linked from the "View Resume" button |
 
 ## Running locally
@@ -28,7 +28,7 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 ## How the page works
 
 ### Hero
-`<h1>`, a one-line `.lede`, and an `.actions` row: the `.cta` resume button plus round `.icon-btn` links (GitHub, LinkedIn). New icon buttons follow the same markup: `<a class="icon-btn" ... aria-label="…" title="…"><img class="logo" src="icons/…" alt=""></a>`.
+`<h1>`, a one-line `.lede`, and an `.actions` row: the `.cta` resume button plus round `.icon-btn` links (GitHub, LinkedIn, Email). New icon buttons follow the same markup: `<a class="icon-btn" ... aria-label="…" title="…"><img class="logo" src="icons/…" alt=""></a>`.
 
 ### Work board
 `WORK` in `index.html` is an array of `{ src, w, h, kicker, title, href, badge }`, in reading order. `w`/`h` must match the image's real pixel size. `href` turns a tile into a link (currently opens in a new tab). `badge` adds a gold ring and a label (League of Legends is badged "Current project"). The board deals tiles into 1–3 columns by width.
@@ -78,9 +78,9 @@ Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal cl
 - **Hero line:** change the `.lede` to "I like building cool things." and add a small focus label under it reading "BACKEND · CLOUD · AI". Style the label like the work board's kickers (small, semibold, uppercase, wide letter-spacing, muted color) and keep it as real text so screen readers read it. Wording is "good for now"; the label may change as Justin's focus shifts.
 
 ### Phase 1: Content
-- [ ] Set the Tinikling link and reword the food-blog fact (see above).
-- [ ] Update the hero line and add the "BACKEND · CLOUD · AI" label (see above).
-- [ ] Add the email button.
+- [x] Set the Tinikling link and reword the food-blog fact (see above).
+- [x] Update the hero line and add the "BACKEND · CLOUD · AI" label (see above).
+- [x] Add the email button.
 - [ ] Build the case-study pages:
   - One page per project at `projects/<slug>.html`, sharing one template and `projects/project.css` so they look consistent with the main site (same palette and type).
   - Each page: title and kicker, hero image, overview (the problem), Justin's role, tech stack, what was built, outcome/results, and buttons for GitHub and Demo (hide a button when there's no link). A "Back to work" link returns to `index.html#work`.

@@ -14,7 +14,9 @@
   .hero { min-height: 100vh; display: flex; align-items: center; padding: 0 clamp(20px, 6vw, 96px); }
   .hero-copy { max-width: min(560px, 42vw); }
   h1 { font-size: clamp(40px, 6vw, 84px); line-height: 1.02; margin: 0 0 22px; font-weight: 600; letter-spacing: -.01em; text-shadow: 0 1px 24px rgba(20,40,50,.25); }
-  .lede { font: 400 clamp(16px, 1.4vw, 19px)/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--muted); margin: 0 0 30px; max-width: 30em; }
+  .lede { font: 400 clamp(16px, 1.4vw, 19px)/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--muted); margin: 0 0 12px; max-width: 30em; }
+  /* focus label: same treatment as the work board's kickers */
+  .focus { font: 600 13px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 30px; }
   .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .cta { display: inline-flex; align-items: center; gap: 8px; font: 600 15px/1 ui-sans-serif, system-ui, sans-serif; color: #1f3434; background: #fffaf0; padding: 14px 22px; border-radius: 999px; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
   .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(10,30,30,.25); }
@@ -72,7 +74,8 @@
   <section class="hero">
     <div class="hero-copy">
       <h1>Hi, I'm Justin.</h1>
-      <p class="lede">I like building things people enjoy using.</p>
+      <p class="lede">I like building cool things.</p>
+      <p class="focus">Backend · Cloud · AI</p>
       <div class="actions">
         <a class="cta" href="resume.pdf" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z M14 3v5h5 M9 13h7M9 17h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -83,6 +86,9 @@
         </a>
         <a class="icon-btn" href="https://www.linkedin.com/in/junyoung-justin-park/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
           <img class="logo" src="icons/linkedin.png" alt="" width="19" height="18">
+        </a>
+        <a class="icon-btn" href="mailto:junjpark02@gmail.com" aria-label="Email" title="Email">
+          <img class="logo" src="icons/mail.svg" alt="" width="20" height="20">
         </a>
       </div>
     </div>
@@ -103,11 +109,10 @@
     facts: {
       fish: [],   // no plain fish: every catch is one of the treasures below
       jjajangmyeon: ['Jjajangmyeon is my favorite food, both to eat and to cook!'],
-      // linkText becomes a link once you fill in `link`
-      bottle: [{ text: 'Click here to go to my food blog! Read about my recipe ideas, my food diary, and more. (Under construction)', linkText: 'Click here to go to my food blog!', link: '' }],
+      bottle: ["I'm working on a food blog: recipe ideas, a food diary and more. Coming soon!"],
       viola: ["I played the viola for over 10 years, and my favorite piece I've played is the Debussy String Quartet!"],
       overwatch: ['I used to play Overwatch semi-professionally, ranking in the top 50 players in the US!'],
-      tinikling: [{ text: 'I took a leap of faith and joined Tinikling last year, and it was my best decision in college! Watch us perform here.', linkText: 'Watch us perform here', link: '' }],
+      tinikling: [{ text: 'I took a leap of faith and joined Tinikling last year, and it was my best decision in college! Watch us perform here.', linkText: 'Watch us perform here', link: 'https://www.youtube.com/watch?v=qcwGhEe47U8' }],
       hongkong: ["I'm currently studying AI/ML abroad in Hong Kong at HKUST!"],
     },
     // extra catches drawn from an image file (only appear once the file exists)
