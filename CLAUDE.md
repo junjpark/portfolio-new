@@ -135,7 +135,8 @@ Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal cl
 - [ ] Replace weak board images: Filipino Heritage AR and Mobility Project (title slides), tailor (logo only), ReBalance (reads as a New Balance product page).
 
 ### Phase 2: Ship
-- [ ] Add a favicon and Open Graph/Twitter tags with a preview image (for LinkedIn shares) on `index.html` and every case-study page. Case-study pages already have `<meta name="description">`; `index.html` doesn't.
+- [x] Favicon (Nov 11, 2026): `favicon.svg` (fishing rod + bobber in the scene palette), `favicon-32.png`, `apple-touch-icon.png`, linked on every page. Site title is now "junjpark".
+- [ ] Add Open Graph/Twitter tags with a preview image (for LinkedIn shares) on `index.html` and every case-study page. Case-study pages already have `<meta name="description">`; `index.html` doesn't.
 - [ ] Give `resume.pdf` a document title.
 - [ ] Deploy on Vercel (chosen Nov 11, 2026): static site, no build step, framework preset "Other". `.vercelignore` keeps CLAUDE.md, the READMEs and the unlinked `tailor presentation.pdf` off the live site. Custom domain later.
 - [ ] Test on real phones and run Lighthouse.

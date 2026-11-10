@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- fishing rod with a bobber, in the River Fisher palette -->
+  <rect width="64" height="64" rx="14" fill="#2b4646"/>
+  <path d="M11 55 L50 9" stroke="#fffaf0" stroke-width="4" stroke-linecap="round"/>
+  <path d="M11 55 L19.5 45" stroke="#c99a48" stroke-width="7.5" stroke-linecap="round"/>
+  <circle cx="23.5" cy="42.5" r="4.6" fill="#2b4646" stroke="#fffaf0" stroke-width="2.4"/>
+  <path d="M50 9 L50 33" stroke="#fffaf0" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>
+  <path d="M43.5 39 a6.5 6.5 0 0 1 13 0 Z" fill="#e0573b"/>
+  <path d="M43.5 39 a6.5 6.5 0 0 0 13 0 Z" fill="#fffaf0"/>
+  <circle cx="50" cy="39" r="6.5" fill="none" stroke="#1d2f2f" stroke-width="1.2"/>
+</svg>
