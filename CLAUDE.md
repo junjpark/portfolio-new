@@ -17,6 +17,7 @@ The hero sits on top of **The River Fisher**, a hand-painted, anime-style river 
 | `work/`           | Project images for the board, listed in `WORK` (see `work/README.md`) |
 | `catches/`        | Image-based catches, listed under `catchImages` (see `catches/README.md`). Currently `overwatch.svg` |
 | `icons/`          | White logos for the hero's icon buttons: `github.svg`, `linkedin.png`, `mail.svg` (see `icons/README.md`) |
+| `projects/`       | Case-study pages, one per project (`<slug>.html`), all styled by `projects/project.css`. Placeholders still to fill are marked `<span class="todo">` |
 | `resume.pdf`      | Resume, linked from the "View Resume" button |
 
 ## Running locally
@@ -31,7 +32,7 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 `<h1>`, a one-line `.lede`, and an `.actions` row: the `.cta` resume button plus round `.icon-btn` links (GitHub, LinkedIn, Email). New icon buttons follow the same markup: `<a class="icon-btn" ... aria-label="…" title="…"><img class="logo" src="icons/…" alt=""></a>`.
 
 ### Work board
-`WORK` in `index.html` is an array of `{ src, w, h, kicker, title, href, badge }`, in reading order. `w`/`h` must match the image's real pixel size. `href` turns a tile into a link (currently opens in a new tab). `badge` adds a gold ring and a label (League of Legends is badged "Current project"). The board deals tiles into 1–3 columns by width.
+`WORK` in `index.html` is an array of `{ src, w, h, kicker, title, href, badge }`, in reading order. `w`/`h` must match the image's real pixel size. `href` turns a tile into a link: case studies (`projects/<slug>.html`) open in the same tab, external `http(s)` URLs in a new one. `badge` adds a gold ring and a label (League of Legends is badged "Current project"). The board deals tiles into 1–3 columns by width.
 
 ### River Fisher API
 
@@ -81,7 +82,7 @@ Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal cl
 - [x] Set the Tinikling link and reword the food-blog fact (see above).
 - [x] Update the hero line and add the "BACKEND · CLOUD · AI" label (see above).
 - [x] Add the email button.
-- [ ] Build the case-study pages:
+- [ ] Build the case-study pages (template, all 9 pages and tile links done; League, LeetCode 1v1 and People's Voice filled from the resume; the rest need content, and every page still needs its role and GitHub/demo links. Find gaps with `grep -n todo projects/*.html`):
   - One page per project at `projects/<slug>.html`, sharing one template and `projects/project.css` so they look consistent with the main site (same palette and type).
   - Each page: title and kicker, hero image, overview (the problem), Justin's role, tech stack, what was built, outcome/results, and buttons for GitHub and Demo (hide a button when there's no link). A "Back to work" link returns to `index.html#work`.
   - Set each `WORK` tile's `href` to its page and open it in the same tab (case studies are part of the site, not external links).

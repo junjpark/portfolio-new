@@ -121,18 +121,18 @@
     },
   });
   // Selected work: one entry per tile, in reading order (top-left → bottom-right). Add `src` (an image in work/),
-  // and optionally a title, kicker, link (`href`) and `badge` (highlights the tile with a label).
+  // and optionally a title, kicker, link (`href`: a case study in projects/, or an external URL, which opens in a new tab) and `badge` (highlights the tile with a label).
   // Tiles without an image show as a soft placeholder at the given aspect ratio (w × h) so the layout is visible.
   const WORK = [
-    { src: 'work/peoples-voice-dashboard.jpg', w: 2000, h: 1099, kicker: 'Data visualization', title: "People's Voice Survey Dashboard" },
-    { src: 'work/mobility-project.jpg', w: 1920, h: 1080, kicker: 'WashU Digital Transformation', title: 'Mobility Project' },
-    { src: 'work/tailor.jpg', w: 2000, h: 1124, kicker: 'AI-powered iOS app', title: 'tailor' },
-    { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU' },
-    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Current project' },
-    { src: 'work/filipino-heritage-ar.jpg', w: 2000, h: 1121, kicker: 'Proof-of-concept proposal', title: 'Revitalizing Filipino Heritage Through AR' },
-    { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance' },
-    { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1' },
-    { src: 'work/cory.jpg', w: 1680, h: 904, kicker: 'Computer vision', title: 'cory' },
+    { src: 'work/peoples-voice-dashboard.jpg', w: 2000, h: 1099, kicker: 'Data visualization', title: "People's Voice Survey Dashboard", href: 'projects/peoples-voice-dashboard.html' },
+    { src: 'work/mobility-project.jpg', w: 1920, h: 1080, kicker: 'WashU Digital Transformation', title: 'Mobility Project', href: 'projects/mobility-project.html' },
+    { src: 'work/tailor.jpg', w: 2000, h: 1124, kicker: 'AI-powered iOS app', title: 'tailor', href: 'projects/tailor.html' },
+    { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU', href: 'projects/grubu.html' },
+    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Current project', href: 'projects/league-game-review.html' },
+    { src: 'work/filipino-heritage-ar.jpg', w: 2000, h: 1121, kicker: 'Proof-of-concept proposal', title: 'Revitalizing Filipino Heritage Through AR', href: 'projects/filipino-heritage-ar.html' },
+    { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance', href: 'projects/rebalance.html' },
+    { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1', href: 'projects/leetcode-1v1.html' },
+    { src: 'work/cory.jpg', w: 1680, h: 904, kicker: 'Computer vision', title: 'cory', href: 'projects/cory.html' },
     // e.g. { src: 'work/blue-bee-hill.jpg', w: 1600, h: 1600, kicker: 'Linel', title: 'Blue Bee Hill', href: 'https://…' },
   ];
   (function renderBoard() {
@@ -142,7 +142,7 @@
     WORK.forEach((it, i) => {
       const t = document.createElement(it.href ? 'a' : 'div');
       t.className = 'tile' + (it.title || it.kicker ? ' has-info' : '') + (it.badge ? ' featured' : '');
-      if (it.href) { t.href = it.href; t.target = '_blank'; t.rel = 'noopener'; }
+      if (it.href) { t.href = it.href; if (/^https?:/.test(it.href)) { t.target = '_blank'; t.rel = 'noopener'; } }  // case studies open in the same tab
       if (it.src) {
         const img = new Image(); img.src = it.src; img.alt = it.title || ''; img.loading = 'lazy'; img.decoding = 'async';
         if (it.w && it.h) { img.width = it.w; img.height = it.h; }

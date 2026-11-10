@@ -1,0 +1,98 @@
+/* Case-study pages: same palette, type and ink lines as the main site (index.html + the fact card). */
+:root {
+  --paper: #f6f3ee;      /* work board background */
+  --card: #fffaf0;       /* fact-card cream */
+  --ink: #25302f;        /* text */
+  --ink-soft: #3a403d;
+  --muted: #5f5a52;
+  --line: rgba(46, 30, 24, .16);   /* hairlines */
+  --outline: rgba(46, 30, 24, .8); /* the scene's ink outline */
+  --amber: #9a6430;      /* kickers */
+  --link: #b4562c;
+  --gold: #c99a48;       /* "current" dot / featured ring */
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-underline-offset: 2px; }
+a:hover { color: #8a3f1e; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 48px); }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
+.bar a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15px; }
+.bar a:hover { color: var(--amber); }
+.bar .home { font-family: var(--serif); font-size: 18px; }
+
+/* intro */
+.intro { padding: clamp(24px, 6vw, 64px) 0 clamp(24px, 4vw, 40px); max-width: 760px; }
+.kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 14px;
+  font: 700 12px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+.badge { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px 5px 9px; border-radius: 999px;
+  box-shadow: 0 0 0 1.5px rgba(201, 154, 72, .85); color: var(--ink); font-size: 10.5px; letter-spacing: .1em; }
+.badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+h1 { font: 600 clamp(36px, 5.4vw, 60px)/1.05 var(--serif); letter-spacing: -.01em; margin: 0 0 18px; }
+.summary { font-size: clamp(17px, 1.6vw, 19px); line-height: 1.6; color: var(--ink-soft); margin: 0 0 26px; max-width: 36em; }
+
+/* buttons: the hero's pill CTA, in ink; secondary is the thin-ring style */
+.links { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; gap: 9px; min-height: 46px; padding: 0 20px; border-radius: 999px;
+  font: 600 15px/1 var(--sans); text-decoration: none; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--outline);
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease; }
+.btn:hover { color: var(--ink); background: rgba(255, 250, 240, .7); transform: translateY(-1px); }
+.btn.primary { background: var(--ink); color: var(--card); box-shadow: none; }
+.btn.primary:hover { background: #1b2423; color: var(--card); box-shadow: 0 8px 20px rgba(10, 30, 30, .18); }
+.btn img, .btn svg { flex: none; display: block; }
+
+/* screenshot: cream paper with the ink outline */
+.shot { margin: 0 0 clamp(32px, 5vw, 56px); }
+.shot img { display: block; width: 100%; height: auto; border-radius: 14px 16px 13px 16px; background: var(--card);
+  box-shadow: 0 0 0 1.5px var(--outline), 0 14px 36px rgba(16, 36, 40, .12); }
+
+/* role / timeline / stack */
+.meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0 0 clamp(24px, 4vw, 40px);
+  padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.meta dt { font: 700 11.5px/1.2 var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--amber); margin: 0 0 8px; }
+.meta dd { margin: 0; color: var(--ink-soft); }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.chips li { font-size: 13px; line-height: 1; padding: 6px 10px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(46, 30, 24, .28); color: var(--ink-soft); }
+
+/* body sections: heading on the left, prose on the right */
+.block { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 12px 40px; padding: clamp(20px, 3vw, 30px) 0; border-bottom: 1px solid var(--line); }
+.block h2 { font: 600 24px/1.25 var(--serif); margin: 0; }
+.block p { margin: 0 0 12px; max-width: 40em; color: var(--ink-soft); }
+.block p:last-child { margin-bottom: 0; }
+.block ul { margin: 0; padding-left: 1.1em; max-width: 40em; color: var(--ink-soft); }
+.block li { margin: 0 0 8px; }
+.block li::marker { color: var(--amber); }
+.stats { display: flex; flex-wrap: wrap; gap: 14px 36px; margin: 0 0 14px; padding: 0; list-style: none; }
+.stats li { margin: 0; }
+.stats b { display: block; font: 600 30px/1.1 var(--serif); color: var(--ink); }
+.stats span { font-size: 14px; color: var(--muted); }
+
+/* placeholders: content still to come from Justin */
+.todo { display: block; padding: 12px 14px; border-radius: 10px; background: var(--card); color: var(--muted);
+  border: 1.5px dashed rgba(154, 100, 48, .55); font-style: italic; }
+.todo::before { content: "To fill in: "; font-style: normal; font-weight: 700; color: var(--amber); }
+.meta .todo { padding: 4px 8px; font-size: 14px; }
+
+/* previous / next */
+.more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: clamp(28px, 5vw, 48px) 0 clamp(40px, 7vw, 72px); }
+.more a { display: block; padding: 16px 18px; border-radius: 14px 16px 13px 16px; background: var(--card); color: var(--ink); text-decoration: none;
+  box-shadow: 0 0 0 1.5px var(--outline); transition: transform .2s ease, box-shadow .2s ease; }
+.more a:hover { transform: translateY(-2px) rotate(-.4deg); box-shadow: 0 0 0 1.5px var(--outline), 0 10px 24px rgba(16, 36, 40, .12); }
+.more small { display: block; font: 700 11.5px/1.2 var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--amber); margin: 0 0 6px; }
+.more strong { font: 600 19px/1.3 var(--serif); }
+.more .next { text-align: right; }
+
+@media (max-width: 720px) {
+  .meta { grid-template-columns: 1fr; gap: 18px; }
+  .block { grid-template-columns: 1fr; }
+  .more { grid-template-columns: 1fr; }
+  .more .next { text-align: left; }
+}
