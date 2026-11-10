@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mobility Project · Justin Park</title>
-<meta name="description" content="Mobility Project: a project by Justin Park.">
+<meta name="description" content="A map-based tool for exploring how people move around campus, built for a WashU psychology research team.">
 <link rel="stylesheet" href="project.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
   <section class="intro">
     <p class="kicker">WashU Digital Transformation</p>
     <h1>Mobility Project</h1>
-    <p class="summary"><span class="todo">a one-sentence summary of the project</span></p>
+    <p class="summary">A map-based tool for exploring how people move around campus, built for a WashU psychology research team.</p>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
@@ -33,26 +33,31 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
-    <div><dt>Timeline</dt><dd><span class="todo">dates</span></dd></div>
-    <div><dt>Stack</dt><dd><span class="todo">tech stack</span></dd></div>
+    <div><dt>Timeline</dt><dd>May 2025 – October 2025</dd></div>
+    <div><dt>Stack</dt><dd><ul class="chips"><li>React</li><li>Mapbox GL</li><li>Python</li><li>Flask</li><li>GeoPandas</li><li>Parquet</li><li>OSRM</li></ul></dd></div>
   </dl>
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>A web app for exploring how people move around a campus. It takes location traces (GPS tracks from the Dartmouth StudentLife dataset and WashU WiFi connection logs) and turns them into trips you can filter, replay and route on an interactive map.</p>
+      <p>We built it for a psychology research team at WashU.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
-      <p><span class="todo">what you built: the main features and the interesting technical parts</span></p>
+      <ul>
+        <li><strong>Data pipeline.</strong> A Python ETL with one processor per data source, all mapped onto a single schema and saved as GeoParquet, plus a converter for Excel and CSV uploads.</li>
+        <li><strong>Spatial API.</strong> A Flask API for uploading files, querying trips inside a map area or by date, and exporting the filtered data back to Parquet, with pagination and caching.</li>
+        <li><strong>Trips on real roads.</strong> Raw GPS points are snapped onto streets with OSRM map-matching. An offline job matches routes concurrently in batches and caches them, so the map doesn’t wait on the routing service.</li>
+        <li><strong>Map interface.</strong> A React and Mapbox GL front end that replays trips on a timeline with the camera following along, shows how often each route is used, and matches stops to nearby points of interest.</li>
+      </ul>
     </div>
   </section>
   <section class="block">
     <h2>Outcome</h2>
     <div>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <p>The biggest lesson was how to work with messy, unclear data. The sources came in different formats (GPS tracks from one study, WiFi connection logs from another, and spreadsheets), and raw GPS points drift off the streets. Most of the work was turning all of that into one consistent schema the research team could explore on a map.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

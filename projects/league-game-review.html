@@ -33,7 +33,6 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
     <div><dt>Timeline</dt><dd>October 2026 – now</dd></div>
     <div><dt>Stack</dt><dd><ul class="chips"><li>Python</li><li>XGBoost</li><li>scikit-learn</li><li>pytest</li></ul></dd></div>
   </dl>
@@ -41,16 +40,19 @@
     <h2>Overview</h2>
     <div>
       <p>Chess.com’s game review shows how each move changed your odds of winning. This project brings that idea to League of Legends by estimating the win probability at every minute of a ranked match.</p>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>The hard part is that League has no engine. A chess engine can search a position and prove the best move. League has hidden information and no list of possible moves, and match data only records what happened, never what would have happened otherwise. So the review only makes comparative, statistical claims: how much a moment moved your team’s odds, and how unusual that swing is for that point in the game. It never says a play was objectively right or wrong.</p>
+      <p>I built it for players like me (I play Emerald), on Riot’s public match data for North American ranked solo/duo games.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li>Collected ~20K ranked matches (~600K minute-by-minute game states) through a rate-limited, cached API client, validated 100% against official data.</li>
-        <li>Trained a calibrated XGBoost win-probability model that beats logistic-regression and neural-net baselines.</li>
-        <li>Shipped behind a 156-test CI suite with data-leakage checks and a run-once holdout gate.</li>
+        <li><strong>Data pipeline.</strong> A rate-limited, cached client for Riot’s API collected ~20K ranked matches across Emerald and Diamond. An extractor turns each match timeline into minute-by-minute tables (~600K game states). Every game is checked against Riot’s own end-of-game totals, and player kills, deaths, assists, CS, gold and damage match on 100% of them.</li>
+        <li><strong>Win-probability model.</strong> XGBoost over 37 features of the game state each minute, plus a calibration layer that changes smoothly with game time, so it never invents a swing at a phase boundary. It narrowly beats a neural net and clearly beats a gold-difference logistic regression (test log loss 0.551 vs 0.553 and 0.571).</li>
+        <li><strong>The fed-carry fix.</strong> The first model only saw team gold totals, so a lead held by one fed carry looked the same as a lead spread across the team. I tested it: at even team gold, Blue won 57% of games when it had the richest player and 46% when Red did. Per-role gold features fixed most of the gap.</li>
+        <li><strong>Moment detection.</strong> Kills and objectives are grouped into moments, and each swing is ranked against what’s normal at that minute of the game. The review keeps <em>your</em> moments apart from swings you weren’t part of, and measures what each death cost in time, gold and objectives.</li>
+        <li><strong>Guardrails.</strong> 160+ tests in CI, including data-leakage tests, a holdout set that can only be checked once, and a wording check that keeps words like “blunder” out of reviews. Calibration thresholds were fixed before training and never loosened.</li>
       </ul>
     </div>
   </section>
@@ -59,10 +61,11 @@
     <div>
       <ul class="stats">
         <li><b>~20K</b><span>ranked matches collected</span></li>
-        <li><b>0.8 pt</b><span>error on 5.7K unseen matches</span></li>
-        <li><b>156</b><span>tests in CI</span></li>
+        <li><b>0.8 pt</b><span>calibration error on 5.7K unseen matches</span></li>
+        <li><b>160+</b><span>tests in CI</span></li>
       </ul>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <p>The released model passed all 55 calibration checks on a fresh holdout of 5,739 games from players it had never seen: when it says 70%, that team wins about 70% of the time.</p>
+      <p>The moment-by-moment review is built, and I’m now validating it on my own ranked games against a bar I set before looking: at least 70% of moments real, at most one unfair per game, and something new in at least half the games. Next up: comparing each moment with what stronger players do in similar spots, and an LLM coach that writes the review in plain language.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

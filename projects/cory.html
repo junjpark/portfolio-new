@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>cory · Justin Park</title>
-<meta name="description" content="cory: a project by Justin Park.">
+<meta name="description" content="An AI choreography tool that traces a dancer’s skeleton and scores how closely you match the routine.">
 <link rel="stylesheet" href="project.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
   <section class="intro">
     <p class="kicker">Computer vision</p>
     <h1>cory</h1>
-    <p class="summary"><span class="todo">a one-sentence summary of the project</span></p>
+    <p class="summary">An AI choreography tool that traces a dancer’s skeleton and scores how closely you match the routine.</p>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
@@ -33,26 +33,31 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
-    <div><dt>Timeline</dt><dd><span class="todo">dates</span></dd></div>
-    <div><dt>Stack</dt><dd><span class="todo">tech stack</span></dd></div>
+    <div><dt>Timeline</dt><dd>Spring 2025</dd></div>
+    <div><dt>Stack</dt><dd><ul class="chips"><li>React</li><li>FastAPI</li><li>MediaPipe</li><li>OpenCV</li><li>PostgreSQL</li><li>Docker</li><li>Kubernetes</li></ul></dd></div>
   </dl>
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>cory is an AI-powered choreography tool that helps dancers and choreographers learn, practice and refine routines. Upload a dance video and cory traces the dancer’s skeleton through it. Then practice in front of your webcam while cory scores how closely your pose matches the routine.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
-      <p><span class="todo">what you built: the main features and the interesting technical parts</span></p>
+      <ul>
+        <li><strong>Pose tracking on uploaded videos.</strong> The backend runs MediaPipe Pose and OpenCV over every frame to find 33 body landmarks, draws the skeleton onto the video, and re-encodes it with the original audio. Frames are processed in parallel across CPU cores, and results are cached per video.</li>
+        <li><strong>Learning Mode.</strong> Full-screen webcam practice with four layouts (picture-in-picture, overlay, side by side and full screen). MediaPipe runs live in the browser and compares the angle of each limb with the reference dancer, coloring it green, yellow or red and showing a live match score from 0 to 100.</li>
+        <li><strong>Editing tools.</strong> A clip timeline for splitting a routine into sections, timestamped notes, a mirror toggle and a guided tour for new users.</li>
+        <li><strong>Accounts and sharing.</strong> Email or Google sign-in, password reset by email, and sharing a project with another dancer as an editor. The backend uses PostgreSQL with versioned migrations and runs in Docker and Kubernetes.</li>
+      </ul>
     </div>
   </section>
   <section class="block">
     <h2>Outcome</h2>
     <div>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <p>cory was my first time working with computer vision, and it forced real design decisions. Running pose detection on every frame of a dance video is slow, so we made deliberate choices about the pipeline: streaming the upload, processing frames in batches, and splitting the work across CPU cores in parallel.</p>
+      <p>Scoring a dancer meant deciding what “matching” means. We compare the direction of each limb relative to its joint, using the cosine distance between MediaPipe joint vectors, so the score doesn’t depend on where you stand or how tall you are.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

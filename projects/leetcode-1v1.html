@@ -33,23 +33,24 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
     <div><dt>Timeline</dt><dd>December 2025</dd></div>
     <div><dt>Stack</dt><dd><ul class="chips"><li>React</li><li>TypeScript</li><li>Go</li><li>Kafka</li><li>Redis</li><li>Judge0</li><li>Docker</li><li>Kubernetes</li></ul></dd></div>
   </dl>
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>LeetCode 1v1 turns coding practice into a head-to-head race. Join a queue, get matched with a player near your rating, and both of you get the same problem. The first to pass every test case wins.</p>
+      <p>It was built as a course final project (CSE 4207, Fall 2025) and designed as a set of microservices that talk through events.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li>Architected a 7-microservice platform on Kubernetes, with Kafka event streaming between services.</li>
-        <li>Built matchmaking that pairs players by ELO rating in under 3 seconds.</li>
-        <li>Engineered a collaborative code editor with under 100ms latency, keeping live code in sync across distributed clients.</li>
+        <li><strong>Seven services on Kubernetes.</strong> A React front end, a Node and Socket.IO API, a TypeScript game server, a Go matchmaker and a judge service, plus Kafka and Redis, each deployed to Kubernetes.</li>
+        <li><strong>Matchmaking in Go.</strong> Separate queues for each difficulty and match length, each kept sorted by ELO in a B-tree. Every second, the matchmaker pairs neighbouring players who are within 100 rating points.</li>
+        <li><strong>Event streaming.</strong> Kafka carries match requests and found matches between the API and the matchmaker. When a match is found, the API picks a problem of the right difficulty and starts the game for both players.</li>
+        <li><strong>Judging.</strong> Each submission runs test case by test case in Judge0, and both players see each other’s progress live. The editor is Monaco, with seven languages and starter code.</li>
       </ul>
     </div>
   </section>
@@ -57,11 +58,12 @@
     <h2>Outcome</h2>
     <div>
       <ul class="stats">
-        <li><b>7</b><span>microservices on Kubernetes</span></li>
-        <li><b>&lt;3s</b><span>to find a match</span></li>
-        <li><b>&lt;100ms</b><span>editor latency</span></li>
+        <li><b>7</b><span>services on Kubernetes</span></li>
+        <li><b>±100</b><span>ELO matching window</span></li>
+        <li><b>7</b><span>languages in the editor</span></li>
       </ul>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <p>LeetCode 1v1 was a learning project first. I wanted hands-on experience with the tools behind large distributed systems: Kubernetes, Kafka, services written in different languages, and the glue between them.</p>
+      <p>Building it also showed me the cost. Every hop between services adds network latency, serialization and one more thing that can fail, so for an app this size a single monolith would likely be faster and simpler to run. The next step is to test that properly: build a monolith version, benchmark it against the distributed one, and ship whichever performs better.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

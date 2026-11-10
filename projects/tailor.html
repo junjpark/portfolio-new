@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tailor · Justin Park</title>
-<meta name="description" content="An AI-powered clothing app for iOS.">
+<meta name="description" content="A clothing discovery app that uses AI to show you wearing the clothes you like.">
 <link rel="stylesheet" href="project.css">
 </head>
 <body>
@@ -14,9 +14,9 @@
 </header>
 <main class="wrap">
   <section class="intro">
-    <p class="kicker">AI-powered iOS app</p>
+    <p class="kicker">AI-powered mobile app</p>
     <h1>tailor</h1>
-    <p class="summary">An AI-powered clothing app for iOS.</p>
+    <p class="summary">A clothing discovery app that uses AI to show you wearing the clothes you like.</p>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
@@ -33,26 +33,33 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
-    <div><dt>Timeline</dt><dd><span class="todo">dates</span></dd></div>
-    <div><dt>Stack</dt><dd><span class="todo">tech stack</span></dd></div>
+    <div><dt>Timeline</dt><dd>April 2025</dd></div>
+    <div><dt>Stack</dt><dd><ul class="chips"><li>React Native</li><li>Expo</li><li>Firebase</li><li>Gemini API</li></ul></dd></div>
   </dl>
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>Shopping for clothes online means guessing how something will look on you. tailor is a mobile app for discovering clothes: you swipe through items like a dating app, save the ones you like, and see an AI-generated picture of yourself wearing them, one piece at a time or as a full outfit.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
-      <p><span class="todo">what you built: the main features and the interesting technical parts</span></p>
+      <ul>
+        <li><strong>Virtual try-on.</strong> The app sends your profile photo and the clothing image to Google’s Gemini image model, with your height and skin tone in the prompt and an instruction to keep your face recognizable. It saves the result to your profile. It works for single items and for whole outfits.</li>
+        <li><strong>Swipe feed.</strong> A card deck of real products from a retail catalog, mixed across random categories, filtered by your price range and refreshed live when you change it, with haptic feedback on every swipe.</li>
+        <li><strong>Fits.</strong> Combine liked items into saved outfits with a running total price and links to each store page.</li>
+        <li><strong>Accounts and profile.</strong> Firebase sign-up with a profile photo; preferences for price range, style, skin tone, height and favorite brands; likes and saved outfits stored in Firestore and generated images in Firebase Storage.</li>
+      </ul>
     </div>
   </section>
   <section class="block">
     <h2>Outcome</h2>
     <div>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <ul class="stats">
+        <li><b>1st</b><span>place at Google DevFest</span></li>
+      </ul>
+      <p>tailor won first place at Google DevFest.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

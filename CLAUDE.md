@@ -58,7 +58,7 @@ Every page shares the same markup, top to bottom:
 1. A bar with "← Back to work" (`../index.html#work`) and "Justin Park" (home).
 2. `.intro`: `.kicker` (plus `.badge` for the current project), `<h1>`, `.summary`, and `.links` with the GitHub (`.btn.primary`) and demo (`.btn`) buttons. A button is left out when there's no link; an HTML comment on each page shows the button markup.
 3. `figure.slides`: the slideshow. Arrows, dots (darker = current), ←/→ keys when focused, and swipe; it wraps around. The controls hide when there's only one photo. Add photos as `<img>` tags inside `.track` (files in `projects/img/<slug>/`, with `width`, `height`, `alt` and `loading="lazy"`). The frame's aspect ratio comes from `--ratio` (the first photo's `w / h`); other photos letterbox inside it.
-4. `dl.meta`: Role, Timeline, Stack (`.chips`).
+4. `dl.meta`: Timeline and Stack (`.chips`), in a 1fr/2fr grid. No Role row (Justin removed it, Nov 10, 2026).
 5. `.block` sections: Overview, What I built, Outcome (optionally a `.stats` row of big numbers).
 6. `nav.more`: previous / next project, in `WORK` order, wrapping.
 
@@ -67,9 +67,16 @@ Placeholders are `<span class="todo">…</span>`, rendered as dashed boxes readi
 Slugs: `peoples-voice-dashboard`, `mobility-project`, `tailor`, `grubu`, `league-game-review`, `filipino-heritage-ar`, `rebalance`, `leetcode-1v1`, `cory`.
 
 Content status:
-- **People's Voice Survey Dashboard:** filled from the resume; "Visit the site" → `https://quest.wustl.edu/pvs`; 4 slideshow photos (map, single-country bar chart, US vs UK comparison). Still needs Role and Overview.
-- **League of Legends Game Review** and **LeetCode 1v1:** filled from the resume. Still need Role, extra Overview detail and GitHub/demo links.
-- **The other six:** title, kicker and image only. Everything else is a placeholder. Known facts: tailor is an AI-powered clothing iOS app; ReBalance is mainly an LLM API project; the Filipino Heritage AR project is a proof-of-concept proposal (no codebase); Mobility Project is from WashU Digital Transformation.
+Overview, What I built and Outcome were written on Nov 10, 2026 from each project's local repo (`~/pvs`, `~/mobility`, `~/tailorApp`, `~/GrubU`, `~/LC1v1`, `~/cory`), `~/lol-game-review/docs` and the resume. Claims the code contradicts were left out.
+Every page is now complete: no `todo` placeholders left (Nov 10, 2026). Outcomes for LeetCode 1v1, Mobility, GrubU and cory are written from Justin's own account of what he learned.
+- **People's Voice Survey Dashboard:** "Visit the site" → `https://quest.wustl.edu/pvs`; 4 slideshow photos.
+- **League of Legends Game Review:** no GitHub/demo links yet.
+- **tailor:** React Native (Expo), not Swift; 1st place at Google DevFest; April 2025; badged "Hackathon winner" on the board.
+- **LeetCode 1v1:** framed as a learning project; next step is benchmarking a monolith version against the microservices. The resume's "collaborative editor, <100ms" claim is not in the code and was left off.
+- **Mobility:** May–Oct 2025, for a WashU psychology research team.
+- **GrubU, cory:** team projects; Outcomes are what Justin learned.
+- **Filipino Heritage AR ("Kawa"):** Spring 2026; written from `projects/Filipino Heritage AR Report.pdf` and `… Presentation.pdf` (these PDFs deploy with the site unless moved). No app was built.
+- **ReBalance:** March 2026, WashU × New Balance Hackathon winner, badged on the board. Written from `~/rebalance-repo` (GitHub `junjpark/rebalance`): `main` is the shoe-wear skeleton; `scanning` adds the Gemini damage scan (`backend/scan.py`); `returns` adds the refund/trade-in check (`/api/assess-return`); `mschulist-backend` moves the scan into the FastAPI/SQLModel API.
 
 ### River Fisher API
 

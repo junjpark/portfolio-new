@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Revitalizing Filipino Heritage Through AR · Justin Park</title>
-<meta name="description" content="Revitalizing Filipino Heritage Through AR: a project by Justin Park.">
+<meta name="description" content="A feasibility study for Kawa, an AR app that lets one dancer practice Tinikling alone with virtual bamboo poles.">
 <link rel="stylesheet" href="project.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
   <section class="intro">
     <p class="kicker">Proof-of-concept proposal</p>
     <h1>Revitalizing Filipino Heritage Through AR</h1>
-    <p class="summary"><span class="todo">a one-sentence summary of the project</span></p>
+    <p class="summary">A feasibility study for Kawa, an AR app that lets one dancer practice Tinikling alone with virtual bamboo poles.</p>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
@@ -33,26 +33,31 @@
     <div class="dots"></div>
   </figure>
   <dl class="meta">
-    <div><dt>Role</dt><dd><span class="todo">your role</span></dd></div>
-    <div><dt>Timeline</dt><dd><span class="todo">dates</span></dd></div>
-    <div><dt>Stack</dt><dd><span class="todo">tech stack</span></dd></div>
+    <div><dt>Timeline</dt><dd>Spring 2026</dd></div>
+    <div><dt>Proposed stack</dt><dd><ul class="chips"><li>React Native</li><li>Expo</li><li>MediaPipe</li><li>ARKit</li><li>ARCore</li><li>Firebase</li><li>AWS</li><li>PostgreSQL</li></ul></dd></div>
   </dl>
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p><span class="todo">the problem, who it was for and why it mattered</span></p>
+      <p>Tinikling is a traditional Filipino folk dance where dancers step quickly between clapping bamboo poles. It takes at least four people (two dancers and two on the poles), eight-foot poles and a large floor. In my 16-person Tinikling act for WashU’s Lunar New Year Festival, finding a time and a room for everyone pushed us into late-night practices, and one member broke an ankle a month before the show.</p>
+      <p><em>Kawa</em> (short for bamboo in Tagalog) is my proposal for a “magic mirror” AR app that lets one dancer practice alone. Prop a phone on a tripod, and the screen shows you with virtual bamboo poles clapping on your floor in time with the music. The project is a feasibility study and a pitch; the app itself hasn’t been built.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
-      <p><span class="todo">what you built: the main features and the interesting technical parts</span></p>
+      <ul>
+        <li><strong>The design.</strong> The phone’s AR engine (ARKit or ARCore) finds the floor and anchors the poles to it, while MediaPipe’s BlazePose model tracks the dancer’s body on the device. Stepping on a pole triggers a buzz on a smartwatch and a sharp “clack” from the phone, and the step is marked in a replay of the session.</li>
+        <li><strong>A stack chosen by decision matrix.</strong> React Native with Expo over Flutter or two native apps, for reach across iOS and Android. MediaPipe with native AR over iOS-only body tracking or a server-side pose model. AWS and PostgreSQL for structured choreography and session data, with Firebase for sign-in and sync.</li>
+        <li><strong>A latency budget.</strong> At 60 frames per second, each frame gets 16.67 ms, and pose estimation is estimated at about 5 ms of that. All vision runs on the device, rendering runs on its own thread, and vision frames are dropped under load (closer to UDP than TCP), so the poles and the music never fall out of sync.</li>
+        <li><strong>Tracking the feet.</strong> Collision checks use only the ankle, heel and toe landmarks, tested against 3D hitboxes set slightly smaller than the poles as a grace margin. A fast shutter speed and a lighting and background check during setup keep the footwork from blurring.</li>
+      </ul>
     </div>
   </section>
   <section class="block">
     <h2>Outcome</h2>
     <div>
-      <p><span class="todo">results: users, metrics, awards or what you learned</span></p>
+      <p>The feasibility report concludes that current phones can meet the dance’s timing demands and recommends building a minimum viable product: the AR overlay and the pose pipeline first, then alpha testing with WashU Tinikling dancers to tune how forgiving the hitboxes feel.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">
