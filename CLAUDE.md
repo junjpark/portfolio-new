@@ -84,7 +84,7 @@ Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal cl
 - [x] Add the email button.
 - [ ] Build the case-study pages (template, all 9 pages and tile links done; League, LeetCode 1v1 and People's Voice filled from the resume; the rest need content, and every page still needs its role and GitHub/demo links. Find gaps with `grep -n todo projects/*.html`):
   - One page per project at `projects/<slug>.html`, sharing one template and `projects/project.css` so they look consistent with the main site (same palette and type).
-  - Each page: title and kicker, hero image, overview (the problem), Justin's role, tech stack, what was built, outcome/results, and buttons for GitHub and Demo (hide a button when there's no link). A "Back to work" link returns to `index.html#work`.
+  - Each page: title and kicker, a photo slideshow (`projects/slideshow.js`: arrows, dots, ←/→ keys and swipe; controls hide when there's one photo; add photos as `<img>` tags in the page's `.track`, files in `projects/img/<slug>/`), overview (the problem), Justin's role, tech stack, what was built, outcome/results, and buttons for GitHub and Demo (hide a button when there's no link). A "Back to work" link returns to `index.html#work`.
   - Set each `WORK` tile's `href` to its page and open it in the same tab (case studies are part of the site, not external links).
   - Slugs: `peoples-voice-dashboard`, `mobility-project`, `tailor`, `grubu`, `league-game-review`, `filipino-heritage-ar`, `rebalance`, `leetcode-1v1`, `cory`.
   - Resume details exist for League of Legends Game Review, LeetCode 1v1 and People's Voice Survey. Everything else needs content from Justin.
