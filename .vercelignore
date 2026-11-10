@@ -1,0 +1,10 @@
+# Files kept in the repo but not served on the live site
+CLAUDE.md
+README.md
+*/README.md
+.claude
+.DS_Store
+**/.DS_Store
+
+# Not linked from any page
+projects/tailor presentation.pdf
