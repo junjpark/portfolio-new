@@ -17,14 +17,18 @@
     <p class="kicker">Machine learning <span class="badge"><i></i>Current project</span></p>
     <h1>League of Legends Game Review</h1>
     <p class="summary">A chess.com-style game review for League of Legends: a win-probability model that tracks how every minute of a match swings the game.</p>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/junjpark/lol-game-review" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
+    </div>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
   </section>
-  <figure class="slides" style="--ratio: 2000 / 1125" aria-label="Photos of League of Legends Game Review">
+  <figure class="slides" style="--ratio: 1200 / 675" aria-label="Photos of League of Legends Game Review">
     <div class="viewport">
       <div class="track">
-        <img src="../work/win-probability-tree.png" alt="League of Legends Game Review" width="2000" height="1125">
+        <img src="../work/league-game-review.gif" alt="Animated replay of a ranked game, minute by minute: players move across the map while the gold and XP lead and Blue's win probability update each minute, from 50% at the start to a Blue win at 33 minutes" width="1200" height="675">
+        <img src="../work/win-probability-tree.png" alt="Diagram of one of the 707 gradient-boosted trees in the win-probability model, splitting on XP, kill, gold and dragon differences" width="2000" height="1125" loading="lazy">
         <!-- More photos: add <img src="img/league-game-review/2.jpg" alt="…" loading="lazy"> lines here. Arrows and dots appear once there are two or more. -->
       </div>
       <button class="arrow prev" type="button" aria-label="Previous photo"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -39,6 +43,7 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
+      <p>I came up with the idea for this project because I’m a lifelong gamer. I’ve played Overwatch for more than half of my life, reaching a peak rank of top 50 in the US, and recently got into League of Legends and chess. I wanted to bring those interests together in one project that gives back to the community that has given me so much.</p>
       <p>Chess.com’s game review shows how each move changed your odds of winning. This project brings that idea to League of Legends by estimating the win probability at every minute of a ranked match.</p>
       <p>The hard part is that League has no engine. A chess engine can search a position and prove the best move. League has hidden information and no list of possible moves, and match data only records what happened, never what would have happened otherwise. So the review only makes comparative, statistical claims: how much a moment moved your team’s odds, and how unusual that swing is for that point in the game. It never says a play was objectively right or wrong.</p>
       <p>I built it for players like me (I play Emerald), on Riot’s public match data for North American ranked solo/duo games.</p>

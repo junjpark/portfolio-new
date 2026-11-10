@@ -17,6 +17,10 @@
     <p class="kicker">iOS app</p>
     <h1>GrubU</h1>
     <p class="summary">A campus marketplace where students with spare meal points order food for students who’ve run out, and get paid in cash.</p>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/junjpark/grubu" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
+      <a class="btn" href="https://youtu.be/Z_NUT5ZfQmk" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5Z" fill="currentColor"/></svg>Watch the demo</a>
+    </div>
     <!-- Buttons: add inside .links (create it if missing); leave a button out when there is no link.
       <a class="btn primary" href="https://github.com/…" target="_blank" rel="noopener"><img src="../icons/github.svg" alt="" width="18" height="18">GitHub</a>
       <a class="btn" href="https://…" target="_blank" rel="noopener">Live demo<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a> -->
@@ -25,6 +29,10 @@
     <div class="viewport">
       <div class="track">
         <img src="../work/grubu.jpg" alt="GrubU" width="2000" height="1250">
+        <img src="img/grubu/2.jpg" alt="Architecture diagram: the SwiftUI app talks to Firebase Auth, Firestore, Cloud Functions, Cloud Messaging and Storage, and Cloud Functions use Stripe Connect for escrow and payouts, SendGrid for support emails and the Gmail API for email parsing" width="2000" height="1133" loading="lazy">
+        <img src="img/grubu/3.jpg" alt="User flows for the requester (log in, create a request, submit with funds pre-authorized, track the order, confirm delivery or report a problem) and the fulfiller (accept a request, place the Grubhub order, upload proof, get paid through Stripe)" width="2000" height="1122" loading="lazy">
+        <img src="img/grubu/4.jpg" alt="Payment flow sequence diagram between the requester, GrubU, Stripe and the fulfiller: funds are held when the request is submitted and captured and transferred when delivery is confirmed, with auto-release after 30 minutes and holds during disputes" width="2000" height="1129" loading="lazy">
+        <img src="img/grubu/5.jpg" alt="Order state machine: pending, accepted, ordering, preparing, picked up, retrieved and completed, with cancelled and disputed then resolved branches" width="2000" height="1130" loading="lazy">
         <!-- More photos: add <img src="img/grubu/2.jpg" alt="…" loading="lazy"> lines here. Arrows and dots appear once there are two or more. -->
       </div>
       <button class="arrow prev" type="button" aria-label="Previous photo"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -39,7 +47,8 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p>Some college students run out of meal points while others have points to spare. GrubU connects them: a student who’s out posts a meal request and sets a price, and a student with spare points orders it on Grubhub and gets paid in cash.</p>
+      <p>At WashU, students can transfer at most 500 meal points per semester, so points can’t easily move from the students who have too many to the students who don’t have enough. Many students fall into one of two groups: those who run out and have to cook or pay for campus meals with real money, and those who finish with enough points for tens or hundreds of meals left unused.</p>
+      <p>GrubU connects them: a student who’s out posts a meal request and sets a price, and a student with spare points orders it on Grubhub and gets paid in cash.</p>
       <p>Sign-up is limited to verified .edu email addresses, so everyone on the app is a student.</p>
     </div>
   </section>
@@ -48,9 +57,9 @@
     <div>
       <ul>
         <li><strong>Two sides of one marketplace.</strong> A <em>Request</em> tab to pick a restaurant, build an order, pay and track it, and an <em>Earn</em> tab to browse open requests, accept one and prove it was ordered with the Grubhub order number and a screenshot.</li>
-        <li><strong>Payments.</strong> Stripe charges the requester at checkout. The student who fulfils the order links a bank account through Stripe Connect and is paid automatically once the requester confirms pickup.</li>
-        <li><strong>Live order tracking.</strong> Each order moves through open, claimed, ordered, delivered and completed, with Firestore listeners updating both students’ screens and push notifications on every status change.</li>
-        <li><strong>Trust and safety.</strong> Server-side .edu email checks, 1–5 star ratings for fulfillers, and issue reports that freeze an order until it’s resolved, all run in Firebase Cloud Functions.</li>
+        <li><strong>Escrow payments.</strong> When a request is submitted, Stripe pre-authorizes the payment and GrubU holds it. Once the requester confirms delivery, the payment is captured and transferred to the fulfiller through Stripe Connect. If they don’t confirm within 30 minutes it releases automatically, and a disputed order keeps the funds on hold for review.</li>
+        <li><strong>Live order tracking.</strong> Each order follows a defined set of states (pending, accepted, ordering, preparing, picked up, retrieved and completed, with branches for cancellations and disputes). Firestore listeners update both students’ screens, and push notifications go out at each step.</li>
+        <li><strong>Trust and safety.</strong> Server-side .edu email checks, photo proof of pickup, 1–5 star ratings for fulfillers, and problem reports with attached evidence that hold the funds until support resolves them, with support emails sent through SendGrid. The business logic runs in Firebase Cloud Functions.</li>
       </ul>
     </div>
   </section>

@@ -62,9 +62,32 @@
   .to-top:hover, .to-top.rf-hooked { background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
   .to-top:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
   .to-top.away { opacity: 0; visibility: hidden; pointer-events: none; }
+  /* experience: two staggered columns of cover cards, each captioned "Org / role year" */
+  .section-kicker { font: 700 12.5px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #9a6430;
+    margin: clamp(10px, 2vw, 24px) 0 clamp(14px, 2vw, 22px); }
+  .xp { display: grid; grid-template-columns: 1fr 1fr; column-gap: clamp(16px, 2vw, 28px); align-items: start; margin-bottom: clamp(40px, 6vw, 88px); }
+  .xp-col { display: flex; flex-direction: column; gap: clamp(28px, 3.4vw, 52px); }
+  .xp-card { margin: 0; }
+  .xp-art { position: relative; aspect-ratio: var(--r, 16 / 9); display: grid; place-items: center; overflow: hidden; padding: 24px; text-align: center;
+    color: #fffaf0; font: 600 clamp(26px, 3.1vw, 46px)/1.1 ui-serif, Georgia, "Times New Roman", serif; letter-spacing: -.01em;
+    text-shadow: 0 1px 18px rgba(30, 20, 10, .18); }
+  .xp-art small { display: block; margin-top: 10px; font: 600 clamp(11px, .9vw, 13px)/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+  .xp-card figcaption { margin-top: 14px; font: 400 clamp(17px, 1.5vw, 22px)/1.35 ui-sans-serif, system-ui, sans-serif; color: #25302f; }
+  .xp-card figcaption .sep, .xp-card figcaption .role { color: #9a948a; }
+  .xp-card figcaption .sep { margin: 0 .3em; }
+  .xp-card p { margin: 6px 0 0; max-width: 34em; font: 400 15px/1.55 ui-sans-serif, system-ui, sans-serif; color: #5f5a52; }
+  .xp-card p a { color: #b4562c; text-underline-offset: 2px; }
+  .xp-card p a:hover { color: #8a3f1e; }
+  .xp-di2  { background: radial-gradient(70% 60% at 22% 18%, rgba(244, 199, 128, .75), transparent 60%), radial-gradient(60% 70% at 85% 90%, rgba(120, 190, 196, .8), transparent 65%), linear-gradient(150deg, #1d4850, #2f7279 55%, #4b98a0); }
+  .xp-frb  { background: radial-gradient(60% 70% at 8% 0%, rgba(246, 214, 150, .9), transparent 60%), radial-gradient(55% 60% at 95% 95%, rgba(196, 140, 190, .75), transparent 65%), linear-gradient(120deg, #e7a14e, #d87a3c); }
+  .xp-prox { background: radial-gradient(65% 60% at 80% 15%, rgba(244, 233, 196, .85), transparent 60%), radial-gradient(60% 70% at 10% 95%, rgba(92, 128, 92, .8), transparent 65%), linear-gradient(160deg, #8daa7c, #a9bf8c 50%, #7d9a6e); }
+  .xp-tch  { background: radial-gradient(60% 60% at 85% 12%, rgba(240, 190, 140, .85), transparent 60%), radial-gradient(70% 70% at 0% 100%, rgba(90, 70, 120, .85), transparent 65%), linear-gradient(140deg, #7d6596, #b27f92 60%, #d79d86); }
   @media (max-width: 720px) {
     .hero { align-items: flex-end; padding-bottom: 14vh; background: linear-gradient(to top, rgba(18,36,38,.55), rgba(18,36,38,0) 55%); }
     .hero-copy { max-width: 100%; }
+    .xp { grid-template-columns: 1fr; row-gap: 36px; }
+    .xp-col { display: contents; }
+    .xp-card { order: var(--o); }
   }
 </style>
 </head>
@@ -93,7 +116,35 @@
       </div>
     </div>
   </section>
-  <section class="below" id="work" aria-label="Selected work">
+  <section class="below" id="work" aria-label="Experience and selected work">
+    <h2 class="section-kicker">Experience</h2>
+    <div class="xp">
+      <div class="xp-col">
+        <figure class="xp-card" style="--o: 1">
+          <div class="xp-art xp-frb" style="--r: 16 / 9" aria-hidden="true"><span>Federal Reserve Bank<br>of St. Louis</span></div>
+          <figcaption>Federal Reserve Bank of St. Louis<span class="sep">/</span><span class="role">Cloud Engineering Intern 2026</span></figcaption>
+          <p>Built a serverless pipeline for 15M+ log files that cut cloud costs by 95%, and took 3rd place in the FRB Innovation Challenge.</p>
+        </figure>
+        <figure class="xp-card" style="--o: 3">
+          <div class="xp-art xp-di2" style="--r: 16 / 10" aria-hidden="true"><span>DI2 Accelerator</span></div>
+          <figcaption>DI2 Accelerator<span class="sep">/</span><span class="role">Fullstack Engineering Intern 2025–26</span></figcaption>
+          <p>Built the <a href="projects/peoples-voice-dashboard.html">People’s Voice Survey Dashboard</a> and the <a href="projects/mobility-project.html">Mobility Project</a> full-time in weekly client sprints, then stayed on part-time as the Executive Director’s on-call full-stack developer.</p>
+        </figure>
+      </div>
+      <div class="xp-col">
+        <figure class="xp-card" style="--o: 2">
+          <div class="xp-art xp-prox" style="--r: 5 / 4" aria-hidden="true"><span>Proximity</span></div>
+          <figcaption>Proximity<span class="sep">/</span><span class="role">Contract Software Engineer 2026</span></figcaption>
+          <p>Software developer of a WashU off-campus housing marketplace: 300+ active users and $500K+ in facilitated leases. Spearheaded the mobile app’s design in React Native, guiding the team on mobile best practices, App Store compliance and cross-platform performance.</p>
+        </figure>
+        <figure class="xp-card" style="--o: 4">
+          <div class="xp-art xp-tch" style="--r: 16 / 9" aria-hidden="true"><span>WashU<small>Object-Oriented Software Laboratory in C++</small></span></div>
+          <figcaption>WashU<span class="sep">/</span><span class="role">Teaching Assistant 2025–26</span></figcaption>
+          <p>Mentored 120+ students in C++ object-oriented design, memory management and debugging.</p>
+        </figure>
+      </div>
+    </div>
+    <h2 class="section-kicker">Selected work</h2>
     <div class="board" id="board"></div>
   </section>
 </main>
@@ -128,7 +179,7 @@
     { src: 'work/mobility-project.jpg', w: 1920, h: 1080, kicker: 'WashU Digital Transformation', title: 'Mobility Project', href: 'projects/mobility-project.html' },
     { src: 'work/tailor.jpg', w: 2000, h: 1124, kicker: 'AI-powered mobile app', title: 'tailor', badge: 'Hackathon winner', href: 'projects/tailor.html' },
     { src: 'work/grubu.jpg', w: 2000, h: 1250, kicker: 'iOS app', title: 'GrubU', href: 'projects/grubu.html' },
-    { src: 'work/win-probability-tree.png', w: 2000, h: 1125, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Current project', href: 'projects/league-game-review.html' },
+    { src: 'work/league-game-review.gif', w: 1200, h: 675, kicker: 'Machine learning', title: 'League of Legends Game Review', badge: 'Current project', href: 'projects/league-game-review.html' },
     { src: 'work/filipino-heritage-ar.jpg', w: 2000, h: 1121, kicker: 'Proof-of-concept proposal', title: 'Revitalizing Filipino Heritage Through AR', href: 'projects/filipino-heritage-ar.html' },
     { src: 'work/rebalance.jpg', w: 1688, h: 876, kicker: 'LLM API', title: 'ReBalance', badge: 'Hackathon winner', href: 'projects/rebalance.html' },
     { src: 'work/leetcode-1v1.jpg', w: 1672, h: 888, kicker: 'Web app', title: 'LeetCode 1v1', href: 'projects/leetcode-1v1.html' },
