@@ -19,6 +19,7 @@ The hero sits on top of **The River Fisher**, a hand-painted, anime-style river 
 | `projects/project.css`  | Shared styles for every case-study page |
 | `projects/slideshow.js` | Photo slideshow used on every case-study page |
 | `projects/img/<slug>/`  | Extra slideshow photos (`2.jpg`, `3.jpg`, …). Photo 1 is the board image from `work/` |
+| `sounds/`               | Sound files listed under `sounds` in `RiverFisher.init`: `nibbles.m4a` (3 bites, trimmed from Justin's 14 s clip), `bob-dip.mp3`, `fish-fight.m4a` (first 2 s of Justin's clip), `cast.m4a` + `reel-in.m4a` (2–4.4 s and 16–23 s of a fishing-rod recording), `fling.m4a` (1–4 s of a splash recording), `reel-release.m4a`, `float-landing.mp3`, `escape.m4a` (14 s to the end of Justin's escape clip), `catch-and-reveal.mp3`, `put-in-basket.mp3` |
 | `catches/`              | Image-based catches, listed under `catchImages` (see `catches/README.md`). Currently `overwatch.svg` |
 | `icons/`                | White logos for the hero's icon buttons: `github.svg`, `linkedin.png`, `mail.svg` (see `icons/README.md`) |
 | `resume.pdf`            | Resume, linked from the "View Resume" button |
@@ -91,6 +92,10 @@ RiverFisher.init(canvas, {
 });
 RiverFisher.reelUp(button, { to });   // `to`: element or scroll position; returns a Promise
 RiverFisher.pause(); RiverFisher.resume(); RiverFisher.destroy();
+RiverFisher.mute(true | false);           // sound; options also take sound: false (off), muted: true, volume: 0..1
+RiverFisher.volume(0..1);
+RiverFisher.catchArt(kind, size);         // a <canvas> picture of one catch (used by "Show all catches")
+RiverFisher.labelOf(kind);                // e.g. 'an old viola' (image catches: once their image has loaded)
 RiverFisher.create(canvas, options);  // independent instance
 ```
 
@@ -101,11 +106,15 @@ Treat these as a stable contract. If one changes, update `index.html`, the READM
 - Image catches (`catchImages`) are added to `CATCHES` only once their image loads, so a missing file never breaks anything. `overwatch` is one.
 - A fact is a string, or `{ text, linkText, link }`: the `linkText` part of `text` becomes a link (new tab), and stays plain bold text while `link` is empty.
 - Every fact is drawn once, shuffled, before any repeats.
-- Current facts: jjajangmyeon (favorite food), bottle (food blog in progress, no link), viola (10+ years, Debussy String Quartet), overwatch (semi-pro, top 50 in the US), tinikling (links to the performance video), hongkong (studying AI/ML at HKUST).
+- While he holds a catch up (from the grab through the fact card, and the bottle until the note opens), warm "tada" spotlight rays fan out from the item (`drawTada`; for the bottle, from the unrolled note instead), fading out when he puts it away. Treasures go into the creel only once his hand is over it (`stash` / `bottleChoreo`).
+- Current facts: jjajangmyeon (favorite food), bottle (food blog in progress, no link), viola (10+ years, Debussy String Quartet; links to his high-school performance video), overwatch (semi-pro, top 50 in the US), tinikling (links to the performance video), hongkong (studying AI/ML at HKUST).
 - `facts.fish` is `[]`, so every catch is a treasure. The hint bubble still shows a fish as a possible catch.
 
+### Sound
+Web Audio in `river-fisher.js` (`createSfx`). Opened straight from disk (file://) the browser blocks `fetch`, so the files then play through `<audio>` elements instead (volume can't go above 1 there, so the boosted reel-in and escape are a bit quieter); on a server or Vercel they go through Web Audio. Justin's sound files (option `sounds: { name: src | { src, slices, dur, vol } }`) play first; anything missing falls back to the built-in synth. Mapping: each of the 3 nibbles → `nibble` (one slice each, at 45% volume), the bite/hook → `hook` (bob dip), the whole fight → `fight` (the 2 s clip re-triggered every 1.75 s with 0.25 s crossfades so it loops seamlessly; it replaces the synth thrash splashes and fades out 0.3 s after the catch, or at once if the fish escapes), he brings the catch forward at `REVEAL_T` (32.1) → `reveal` (the tada rays start then too; for the bottle, when the note unrolls), into the creel → `basket` (treasures and the empty bottle). Also: the rod swinging forward in a cast (`CAST_T` ta 49.8) → `cast`; holding to reel (or the reel-up arrow hauling) → `reel`, letting go mid-fight → `release` (`reel-release.m4a`, 8.6–11 s of Justin's clip: the reel unwinding; a new release or pressing again cuts it off), the 7 s reel-in looped from a random point and faded out on release (boosted ×2.4, the recording is quiet); the catch lifting out of the water → `fling`. The float landing → `land`; the fish getting away → `escape` (boosted ×2). Nothing is synthesised any more unless a file is missing (each event has a synth fallback). The two rod/splash recordings came from YouTube sound-effect videos Justin downloaded; their licence is his to confirm. The game queues events in `G.sfx` and the engine plays them (`playSfx`); the reel ratchet runs while the player holds during a fight or while the reel-up arrow is hauled. Audio unlocks on the first click/key (browser rule). Controls sit in the hero's top-right (`.scene-tools`, hidden while a fish is on): a plain speaker icon with a drop shadow (`#sound-btn`, mute toggle) and a volume slider (`#volume`), both stored in `localStorage` (`rf-muted`, `rf-volume`), plus a **Show all catches** pill that opens `#catch-dialog`, a fact-card-style `<dialog>` stepping through every entry in `FACTS` (← / → keys, Esc or click outside to close) with each catch drawn by `RiverFisher.catchArt` (image catches use their file). `FACTS` and `CATCH_IMAGES` are page constants shared by the scene and the viewer.
+
 ### Click passthrough and accessibility
-Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal clicks and cursor. The custom cursor applies only above the bottom of the hero. The fact card is real DOM text with `aria-live`. `prefers-reduced-motion` or `interactive: false` gives a passive 60-second loop with no game; on case-study pages it makes the slideshow switch instantly. Space reels during the fight.
+**Fish on:** a bite hooks itself (no click). From that moment (`hook`) until the fish is caught or escapes (`fight` ends), the reel bar is up with "hold to reel!" and a small mouse cue to its left (the cue demos press = ▲ / release = ▼ until the first press, then mirrors the real button); for the first ~2 s the fish holds still mid-bar and the meter can't drain (grace ends ~0.9 s after the first press, at most 3.5 s); holding makes him lean back with the rod lifted and bent harder; the scene shows a red hand-inked "!" over the fisher and manga action lines from the screen edges (redrawn 12×/s, fewer at `quality: 'low'`); `<html>` gets `rf-focus`, which `index.html` uses to fade out `.hero-copy`, `.to-top` and `.below`; wheel, touch-drag and scroll keys are blocked and any other scroll is undone. Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal clicks and cursor. The custom cursor applies only above the bottom of the hero. The fact card is real DOM text with `aria-live`. `prefers-reduced-motion` or `interactive: false` gives a passive 60-second loop with no game; on case-study pages it makes the slideshow switch instantly. Space reels during the fight.
 
 ## Ground rules
 
@@ -153,9 +162,12 @@ Links, buttons, inputs, labels and anything with `data-rf-ignore` keep normal cl
 
 No automated tests. After changes, check:
 
-- [ ] Cast, hook and reel in a catch; a fact card appears; "Keep fishing →" dismisses it.
+- [ ] Cast (normal swing, then the float should reach the water in about 1.2 s), let a fish bite (it hooks itself) and reel in a catch; a fact card appears; "Keep fishing →" dismisses it.
 - [ ] Facts don't repeat until all have been shown; linked facts open in a new tab.
+- [ ] Top-right: Show all catches opens the viewer (arrows/keys step through all facts, links work, Esc closes, clicking it doesn't cast); the speaker icon and slider mute/set the volume and are remembered.
+- [ ] Sound (after the first click): reel ratchet while holding, splashes on landing/strike/thrashing/lift/escape, a shimmer with every catch; the speaker button mutes it and the choice is remembered.
 - [ ] Holding Space works as well as holding the mouse.
+- [ ] Hooking a fish: "!" over his head, action lines, hero text/buttons and the work section fade out, the page can't scroll; all of it reverts when the fish is caught or escapes.
 - [ ] The reel-up arrow brings the board into view and fades out once scrolled.
 - [ ] Hero buttons and board tiles click normally with a normal cursor; tiles open their case study in the same tab.
 - [ ] Each case-study page loads; "Back to work" returns to the board; previous/next links work.

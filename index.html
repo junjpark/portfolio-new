@@ -31,6 +31,48 @@
   .icon-btn:hover { background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
   .cta:focus-visible, .icon-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   .icon-btn .logo { display: block; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.3)); }
+  /* top-right of the hero: "show all catches" + the sound icon and volume slider (plain icons with a drop shadow, no rings) */
+  .hero { position: relative; }
+  .scene-tools { position: absolute; top: clamp(14px, 2.4vw, 28px); right: clamp(14px, 2.6vw, 34px); z-index: 3; display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px);
+    transition: opacity .25s ease, visibility .25s; }
+  .catches-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 15px 0 12px; border: 1.5px solid rgba(255,255,255,.9); border-radius: 999px;
+    background: transparent; color: #fff; font: 600 14px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,.35);
+    transition: background-color .25s ease, backdrop-filter .25s ease, -webkit-backdrop-filter .25s ease; }
+  .catches-btn svg { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+  .catches-btn:hover { background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3); }
+  .sound { display: flex; align-items: center; gap: 8px; }
+  .sound-btn { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: none; color: #fffaf0; cursor: pointer; }
+  .sound-btn svg { display: block; width: 30px; height: 30px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)) drop-shadow(0 0 1px rgba(0,0,0,.3)); transition: transform .15s ease; }
+  .sound-btn:hover svg { transform: scale(1.08); }
+  .sound-btn .off, .sound-btn[aria-pressed="false"] .on { display: none; }
+  .sound-btn[aria-pressed="false"] .off { display: block; }
+  .sound input[type="range"] { -webkit-appearance: none; appearance: none; width: 86px; height: 22px; background: transparent; cursor: pointer; margin: 0; }
+  .sound input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 99px; background: linear-gradient(to right, #fffaf0 var(--v, 80%), rgba(255,250,240,.35) var(--v, 80%)); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+  .sound input[type="range"]::-moz-range-track { height: 4px; border-radius: 99px; background: rgba(255,250,240,.35); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+  .sound input[type="range"]::-moz-range-progress { height: 4px; border-radius: 99px; background: #fffaf0; }
+  .sound input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: #fffaf0; box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+  .sound input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: #fffaf0; box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+  .scene-tools :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 999px; }
+  html.rf-focus .scene-tools { opacity: 0; visibility: hidden; pointer-events: none; }
+  @media (max-width: 720px) { .catches-btn { height: 34px; padding: 0 12px 0 10px; font-size: 13px; } .sound input[type="range"] { width: 60px; } }
+  /* every catch, one at a time, styled like the in-scene fact card */
+  .catch-dialog { width: min(420px, calc(100vw - 32px)); padding: 0; border: 0; background: transparent; overflow: visible; color: #25302f; }
+  .catch-dialog::backdrop { background: rgba(16, 32, 34, .45); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+  .catch-card { position: relative; background: #fffaf0; border-radius: 16px 18px 14px 18px; padding: 20px 22px 16px; box-shadow: 0 0 0 1.6px rgba(46,30,24,.8), 0 18px 44px rgba(16,36,40,.35);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; transform: rotate(-.8deg); }
+  .catch-card .art { display: grid; place-items: center; height: 120px; margin: 0 0 10px; }
+  .catch-card .kick { display: block; font: 700 11.5px/1.2 ui-sans-serif, system-ui, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: #9a6430; margin: 0 0 6px; }
+  .catch-card .text { margin: 0; min-height: 4.6em; }
+  .catch-card .text a { color: #b4562c; font-weight: 600; text-underline-offset: 2px; }
+  .catch-card .nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+  .catch-card .nav button { font: 600 13px/1 ui-sans-serif, system-ui, sans-serif; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+  .catch-card .prev { background: transparent; color: #25302f; border: 0; box-shadow: inset 0 0 0 1.4px rgba(46,30,24,.8); }
+  .catch-card .next { background: #25302f; color: #fffaf0; border: 0; }
+  .catch-card .dots { display: flex; gap: 6px; }
+  .catch-card .dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(46,30,24,.2); }
+  .catch-card .dots i.on { background: #25302f; }
+  .catch-card .close { position: absolute; top: 8px; right: 10px; width: 30px; height: 30px; border: 0; background: none; color: #5f5a52; font: 400 22px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+  .catch-card button:focus-visible { outline: 2px solid #9a6430; outline-offset: 2px; }
   body.dark-text { --ink: #142628; --muted: rgba(20,38,40,.78); }
   body.dark-text h1 { text-shadow: 0 1px 24px rgba(255,250,235,.35); }
   body.dark-text .cta { background: #142628; color: #fffaf0; }
@@ -85,6 +127,9 @@
   .xp-frb  { background: radial-gradient(60% 70% at 8% 0%, rgba(246, 214, 150, .9), transparent 60%), radial-gradient(55% 60% at 95% 95%, rgba(196, 140, 190, .75), transparent 65%), linear-gradient(120deg, #e7a14e, #d87a3c); }
   .xp-prox { background: radial-gradient(65% 60% at 80% 15%, rgba(244, 233, 196, .85), transparent 60%), radial-gradient(60% 70% at 10% 95%, rgba(92, 128, 92, .8), transparent 65%), linear-gradient(160deg, #8daa7c, #a9bf8c 50%, #7d9a6e); }
   .xp-tch  { background: radial-gradient(60% 60% at 85% 12%, rgba(240, 190, 140, .85), transparent 60%), radial-gradient(70% 70% at 0% 100%, rgba(90, 70, 120, .85), transparent 65%), linear-gradient(140deg, #7d6596, #b27f92 60%, #d79d86); }
+  /* "fish on!": while a fish is hooked the scene takes over (river-fisher.js sets html.rf-focus and holds the scroll) */
+  .hero-copy, .below { transition: opacity .25s ease, visibility .25s; }
+  html.rf-focus .hero-copy, html.rf-focus .below, html.rf-focus .to-top { opacity: 0; visibility: hidden; pointer-events: none; }
   @media (max-width: 720px) {
     .hero { align-items: flex-end; padding-bottom: 14vh; background: linear-gradient(to top, rgba(18,36,38,.55), rgba(18,36,38,0) 55%); }
     .hero-copy { max-width: 100%; }
@@ -98,6 +143,19 @@
 <canvas id="river" aria-hidden="true"></canvas>
 <main>
   <section class="hero">
+    <div class="scene-tools">
+      <button class="catches-btn" id="catches-btn" type="button" aria-haspopup="dialog" title="Show all catches">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 12c3.2-4.2 8.6-4.6 12.6-1.6L20 7v10l-4.4-3.4C11.6 16.6 6.2 16.2 3 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7.4" cy="11.2" r="1.1" fill="currentColor"/></svg>
+        <span>Show all catches</span>
+      </button>
+      <div class="sound">
+        <button class="sound-btn" id="sound-btn" type="button" aria-pressed="true" aria-label="Sound" title="Sound on">
+          <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 8.8a4.5 4.5 0 0 1 0 6.4M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        </button>
+        <input type="range" id="volume" min="0" max="100" step="1" value="80" aria-label="Volume">
+      </div>
+    </div>
     <div class="hero-copy">
       <h1>Hi, I'm Justin.</h1>
       <p class="lede">I like building cool things.</p>
@@ -151,6 +209,19 @@
     <div class="board" id="board"></div>
   </section>
 </main>
+<dialog class="catch-dialog" id="catch-dialog" aria-label="All catches" data-rf-ignore>
+  <div class="catch-card">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="art" aria-hidden="true"></div>
+    <span class="kick"></span>
+    <p class="text" aria-live="polite"></p>
+    <div class="nav">
+      <button class="prev" type="button">← Previous</button>
+      <div class="dots" aria-hidden="true"></div>
+      <button class="next" type="button">Next →</button>
+    </div>
+  </div>
+</dialog>
 <button class="to-top" id="to-top" type="button" aria-label="See my work">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 14.5 12 8.5l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -159,21 +230,90 @@
 <script>
   // Your fun facts: every fact is caught once (in shuffled order) before any repeats.
   // Each fact is one appearance of its catch.
-  RiverFisher.init(document.getElementById('river'), {
-    facts: {
+  // sound on by default; the speaker icon mutes it and the slider sets the level (both remembered in this browser)
+  let muted = false, volume = 0.8;
+  try { muted = localStorage.getItem('rf-muted') === '1'; const v = parseFloat(localStorage.getItem('rf-volume')); if (v >= 0 && v <= 1) volume = v; } catch (e) {}
+  const FACTS = {
       fish: [],   // no plain fish: every catch is one of the treasures below
       jjajangmyeon: ['Jjajangmyeon is my favorite food, both to eat and to cook!'],
       bottle: ["I'm working on a food blog: recipe ideas, a food diary and more. Coming soon!"],
-      viola: ["I played the viola for over 10 years, and my favorite piece I've played is the Debussy String Quartet!"],
+      viola: [{ text: "I played the viola for over 10 years, and my favorite piece I've played is the Debussy String Quartet! Watch my performance from high school!", linkText: 'Watch my performance from high school!', link: 'https://youtu.be/ywGgqLVlB9g' }],
       overwatch: ['I used to play Overwatch semi-professionally, ranking in the top 50 players in the US!'],
       tinikling: [{ text: 'I took a leap of faith and joined Tinikling last year, and it was my best decision in college! Watch us perform here.', linkText: 'Watch us perform here', link: 'https://www.youtube.com/watch?v=qcwGhEe47U8' }],
       hongkong: ["I'm currently studying AI/ML abroad in Hong Kong at HKUST!"],
-    },
-    // extra catches drawn from an image file (only appear once the file exists)
-    catchImages: {
-      overwatch: { src: 'catches/overwatch.svg', label: 'an Overwatch emblem', size: 36 },
+  };
+  // extra catches drawn from an image file (only appear once the file exists)
+  const CATCH_IMAGES = {
+    overwatch: { src: 'catches/overwatch.svg', label: 'an Overwatch emblem', size: 36 },
+  };
+  RiverFisher.init(document.getElementById('river'), {
+    muted, volume, facts: FACTS, catchImages: CATCH_IMAGES,
+    // sound files (played after the visitor's first click; anything missing falls back to the built-in synth)
+    sounds: {
+      nibble: { src: 'sounds/nibbles.m4a', slices: [0.5, 1.1, 1.68], dur: 0.42, vol: 0.45 },   // one little bite per nibble
+      hook: 'sounds/bob-dip.mp3',                  // the fish takes it: the reel game starts
+      cast: { src: 'sounds/cast.m4a', vol: 1.2 },          // the rod swings forward and the line whips out
+      land: 'sounds/float-landing.mp3',            // the float lands on the water
+      fight: { src: 'sounds/fish-fight.m4a', dur: 2, fade: 0.25 },   // loops while the fish fights
+      escape: { src: 'sounds/escape.m4a', dur: 3.25, fade: 0.4, vol: 2 },   // the fish gets away (14 s to the end of the clip)
+      reel: { src: 'sounds/reel-in.m4a', dur: 7, fade: 0.3, vol: 2.4 },   // loops while you hold to reel (quiet recording, boosted)
+      release: { src: 'sounds/reel-release.m4a', fade: 0.2 },   // let go mid-fight: the reel unwinds
+      fling: 'sounds/fling.m4a',                   // he wins: the catch flies up out of the water
+      reveal: { src: 'sounds/catch-and-reveal.mp3', dur: 3.6 },   // he shows the catch off ("tada" rays)
+      basket: 'sounds/put-in-basket.mp3',          // the catch goes into his creel
     },
   });
+  (function soundControls() {
+    const btn = document.getElementById('sound-btn'), range = document.getElementById('volume');
+    const save = () => { try { localStorage.setItem('rf-muted', muted ? '1' : '0'); localStorage.setItem('rf-volume', String(volume)); } catch (e) {} };
+    const show = () => {
+      const off = muted || volume === 0;
+      btn.setAttribute('aria-pressed', off ? 'false' : 'true'); btn.title = off ? 'Sound off' : 'Sound on';
+      range.value = Math.round((muted ? 0 : volume) * 100); range.style.setProperty('--v', range.value + '%');
+    };
+    btn.addEventListener('click', () => {
+      if (muted || volume === 0) { muted = false; if (volume === 0) volume = 0.6; RiverFisher.volume(volume); } else muted = true;
+      RiverFisher.mute(muted); show(); save();
+    });
+    range.addEventListener('input', () => {
+      volume = range.value / 100; muted = volume === 0;
+      RiverFisher.volume(volume); RiverFisher.mute(muted); range.style.setProperty('--v', range.value + '%'); btn.setAttribute('aria-pressed', muted ? 'false' : 'true'); save();
+    });
+    show();
+  })();
+  // "Show all catches": click through every fun fact without fishing for it
+  (function catchViewer() {
+    const dlg = document.getElementById('catch-dialog'), card = dlg.querySelector('.catch-card');
+    const art = card.querySelector('.art'), kick = card.querySelector('.kick'), text = card.querySelector('.text'), dots = card.querySelector('.dots');
+    const list = [];
+    for (const kind of Object.keys(FACTS)) for (const fact of FACTS[kind]) list.push({ kind, fact });
+    const label = (kind) => RiverFisher.labelOf(kind) || (CATCH_IMAGES[kind] && CATCH_IMAGES[kind].label) || kind;
+    dots.innerHTML = list.map(() => '<i></i>').join('');
+    let i = 0;
+    const setText = (f) => {   // a fact is a string, or { text, linkText, link }: the linkText part becomes a link
+      text.textContent = '';
+      const t = typeof f === 'string' ? f : f.text, lt = typeof f === 'object' && f.linkText, at = lt ? t.indexOf(lt) : -1;
+      if (at < 0) { text.textContent = t; return; }
+      const a = document.createElement('a'); a.href = f.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = lt;
+      text.append(t.slice(0, at), a, t.slice(at + lt.length));
+    };
+    const render = () => {
+      const c = list[i]; art.textContent = '';
+      let pic = RiverFisher.catchArt(c.kind, 112);
+      if (!pic && CATCH_IMAGES[c.kind]) { pic = new Image(); pic.src = CATCH_IMAGES[c.kind].src; pic.alt = ''; pic.width = 88; pic.height = 88; }
+      if (pic) art.append(pic);
+      kick.textContent = 'Catch ' + (i + 1) + ' of ' + list.length + ' · ' + label(c.kind);
+      setText(c.fact);
+      [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    };
+    const go = (d) => { i = (i + d + list.length) % list.length; render(); };
+    document.getElementById('catches-btn').addEventListener('click', () => { i = 0; render(); dlg.showModal(); card.querySelector('.next').focus(); });
+    card.querySelector('.next').addEventListener('click', () => go(1));
+    card.querySelector('.prev').addEventListener('click', () => go(-1));
+    card.querySelector('.close').addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });   // click outside the card
+    dlg.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); go(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); } });
+  })();
   // Selected work: one entry per tile, in reading order (top-left → bottom-right). Add `src` (an image in work/),
   // and optionally a title, kicker, link (`href`: a case study in projects/, or an external URL, which opens in a new tab) and `badge` (highlights the tile with a label).
   // Tiles without an image show as a soft placeholder at the given aspect ratio (w × h) so the layout is visible.

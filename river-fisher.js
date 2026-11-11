@@ -3,10 +3,14 @@
  * Everything is drawn in code (Canvas 2D). No external assets.
  * API:  RiverFisher.init(canvas, {quality:'high'|'low', interactive:true|false, hideCursor:true|false})
  *       RiverFisher.pause() / resume() / destroy()
- * Game: the cursor is the bob. Click the water to cast; click when the float
- *       plunges to hook; hold mouse/Space to keep the fish in the green zone.
+ * Game: the cursor is the bob. Click the water to cast; when a fish pulls the float
+ *       under it hooks itself; hold mouse/Space to keep the fish in the green zone.
  *       Elements matching a, button, input, label… or [data-rf-ignore] are left alone.
+ *       Fish on: a bite hooks itself; from then until the fish is landed or lost, a "!" pops over his head, action lines rush in from
+ *       the screen edges, <html> gets class rf-focus (style it to hide page text/buttons) and scrolling is held.
  *       interactive:false (or prefers-reduced-motion) gives the passive 60 s loop. hint:false hides the how-to bubble.
+ * Sound: synthesised with Web Audio (reel ratchet, splashes, a shimmer on every catch). Starts after the first click/key;
+ *        options { sound: false } disables it, { muted: true } starts muted; RiverFisher.mute(true|false) toggles it.
  * Reel:  RiverFisher.reelUp(buttonEl, { to }): he hooks the button, struggles, and hauls the content below up into view
  *        (`to` = scroll position or element; defaults to the bottom of the hero).
  * Extra catches from images: catchImages: { overwatch: { src: 'catches/overwatch.svg', label: 'an Overwatch emblem', size: 36 } }
@@ -1003,29 +1007,50 @@ function drawClouds(c, E) {
   }
   c.globalAlpha = 1;
 }
-/** their reflections move with them, broken up by the same ripples as the rest of the water */
+/** their reflections move with them, broken up by the same ripples as the rest of the water.
+ *  Drawn into a small world-space layer and masked with a soft-edged shape (all of the open water up to the right
+ *  bank's own reflection), so there's no hard edge and no seams between the ripple slices. */
+const CR_X = -80, CR_Y = 580, CR_W = 2080, CR_H = 580;
+function cloudReflMask(E, s) {
+  const cv = document.createElement('canvas'); cv.width = Math.ceil(CR_W * s); cv.height = Math.ceil(CR_H * s);
+  const m = cv.getContext('2d'); m.setTransform(s, 0, 0, s, -CR_X * s, -CR_Y * s);
+  if ('filter' in m) m.filter = 'blur(' + Math.max(1, 26 * s).toFixed(1) + 'px)';
+  m.beginPath(); m.moveTo(CR_X - 60, 1226 - ridgeA(CR_X) + 6);
+  for (let x = CR_X; x <= 1700; x += 20) m.lineTo(x, 1226 - ridgeA(x) + 6);
+  for (let y = 1226 - ridgeA(1700) + 6; y <= 1200; y += 10) m.lineTo(Math.min(1700, bankX(y) - lerp(30, 150, persp(y)) * 0.7), y);
+  m.lineTo(CR_X - 60, 1220); m.closePath(); m.fillStyle = '#fff'; m.fill();
+  return cv;
+}
 function drawCloudReflections(c, E, tw) {
-  const ct = E.cloudT || 0;
-  if (!E.cloudClip) {   // only the open water below the mirrored far hills, away from the dark right bank
-    const p = new Path2D(); p.moveTo(-80, 1226 - ridgeA(-80) + 6);
-    for (let x = -80; x <= 1240; x += 20) p.lineTo(x, 1226 - ridgeA(x) + 6);
-    p.lineTo(1240, 1160); p.lineTo(-80, 1160); p.closePath(); E.cloudClip = p;
+  const ct = E.cloudT || 0, v = E.view;
+  const s = Math.min(1, Math.max(0.3, v.m * (E.q ? 0.6 : 0.45)));
+  if (!E.cr || E.cr.s !== s) {
+    const cv = document.createElement('canvas'); cv.width = Math.ceil(CR_W * s); cv.height = Math.ceil(CR_H * s);
+    E.cr = { s, cv, cx: cv.getContext('2d'), mask: cloudReflMask(E, s) };
   }
-  c.save(); c.clip(E.cloudClip);
-  const n = 12;
+  const L = E.cr, o = L.cx, n = 12;
+  o.setTransform(1, 0, 0, 1, 0, 0); o.globalCompositeOperation = 'source-over'; o.globalAlpha = 1; o.clearRect(0, 0, L.cv.width, L.cv.height);
+  let any = false;
   for (const cl of E.L.clouds) {
-    const q = cloudPos(cl, ct); if (q[0] > 1300 || q[0] + cl.w < -80) continue;
+    const q = cloudPos(cl, ct); if (q[0] > 1800 || q[0] + cl.w < -80) continue;
     const S = cl.cv.height / cl.h, bh = cl.h / n;
-    c.globalAlpha = 0.42 * (cl.d.alpha || 1);
+    o.globalAlpha = cl.d.alpha || 1;
     for (let k = 0; k < n; k++) {
       const ym = 1226 - (q[1] + (k + 0.5) * bh), p = persp(ym), z = 2400 / Math.max(10, ym - 586);
       const off = (0.35 + 5.2 * p * p) * (0.62 * Math.sin(z * 0.95 - TAU * 31 * tw / LOOP + 0.3) + 0.38 * Math.sin(z * 2.35 + TAU * 47 * tw / LOOP));
-      c.save(); c.translate(0, 1226); c.scale(1, -1);
-      c.drawImage(cl.cv, 0, k * bh * S, cl.cv.width, bh * S + 0.5, q[0] + off, q[1] + k * bh, cl.w, bh + 0.3);
-      c.restore();
+      // mirrored slice k lands between world y0..y1; snap to whole layer pixels so neighbouring slices meet exactly
+      const wy0 = 1226 - (q[1] + (k + 1) * bh), wy1 = 1226 - (q[1] + k * bh);
+      const py0 = Math.round((wy0 - CR_Y) * s), py1 = Math.round((wy1 - CR_Y) * s);
+      if (py1 <= 0 || py0 >= L.cv.height || py1 <= py0) continue;
+      o.save(); o.translate(0, py1); o.scale(1, -1);   // flip: the slice's top goes to the bottom
+      o.drawImage(cl.cv, 0, k * bh * S, cl.cv.width, bh * S, (q[0] + off - CR_X) * s, 0, cl.w * s, py1 - py0);
+      o.restore(); any = true;
     }
   }
-  c.globalAlpha = 1; c.restore();
+  if (!any) return;
+  o.globalAlpha = 1; o.globalCompositeOperation = 'destination-in'; o.drawImage(L.mask, 0, 0);
+  o.globalCompositeOperation = 'source-over';
+  c.globalAlpha = 0.42; c.drawImage(L.cv, CR_X, CR_Y, CR_W, CR_H); c.globalAlpha = 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1040,53 +1065,13 @@ function lens(c, x, y, len, th, wob) {
 function ring(c, x, y, r, sq) { c.moveTo(x + r, y); c.ellipse(x, y, r, r * sq, 0, 0, TAU); }
 
 /** cat's-paw ripples: a texture of tiny wavelets that the breezes sweep across the river */
-function makeRuffle(P, S) {
-  reseed(808);
-  const w = 640, y0 = 596, h = 560;
-  return mkLayer(0, y0, w, h, S * 0.7, (c) => {
-    const bins = {};
-    for (let i = 0; i < 5200; i++) {
-      const y = y0 + h * Math.pow(rnd(), 0.8), x = rnd(0, w), p = persp(y);
-      if (fbm(x / 80, y / (22 + 46 * p), 31, 3) < 0.46) continue;
-      const dark = rnd() < 0.6, bucket = Math.min(3, (p * 4) | 0), key = (dark ? 'd' : 'l') + bucket;
-      (bins[key] = bins[key] || []).push([x, y, lerp(2.5, 22, p) * rnd(0.6, 1.3), p]);
-    }
-    for (const k in bins) {
-      const dark = k[0] === 'd', b = +k[1];
-      c.strokeStyle = dark ? rgba(P.wDark, 0.75) : rgba(mixc(P.skyMid, P.wHi, 0.5), 0.7);
-      c.lineWidth = lerp(0.6, 1.9, (b + 0.5) / 4);
-      c.beginPath();
-      for (const q of bins[k]) { c.moveTo(q[0], q[1]); c.quadraticCurveTo(q[0] + q[2] / 2, q[1] - 0.6 - q[3], q[0] + q[2], q[1]); }
-      c.stroke();
-    }
-  });
-}
-function drawBreeze(c, E, t) {
-  const L = E.L.ruffle; if (!L) return;
-  const S = L.cv.width / L.w, colW = 40;
-  for (const G of GUSTS) {
-    const front = 330 * wrapd(t - G[0]) - 120;   // where this breeze's leading edge is right now
-    if (front < -80 || front - 1000 > 1800) continue;
-    for (let x = Math.max(-80, Math.floor((front - 1000) / colW) * colW); x < Math.min(1800, front + 20); x += colW) {
-      const a = G[1] * gustShape((front - x) / 330) * 0.95;
-      if (a < 0.015) continue;
-      const sx = ((x + t * 26) % L.w + L.w) % L.w, sw = Math.min(colW, L.w - sx);
-      c.globalAlpha = a * 0.09 * (x < 860 ? 0.7 : 1); c.fillStyle = E.breezeTint || (E.breezeTint = rgba(E.P.wDark)); c.fillRect(x, 596, colW, 560);   // the matte, darker patch
-      c.globalAlpha = a * (x < 860 ? 0.7 : 1);
-      c.drawImage(L.cv, sx * S, 0, sw * S, L.cv.height, x, L.y, sw, L.h);
-      if (sw < colW) c.drawImage(L.cv, 0, 0, (colW - sw) * S, L.cv.height, x + sw, L.y, colW - sw, L.h);
-    }
-  }
-  c.globalAlpha = 1;
-}
 function drawReflection(c, E, tw) {
-  const gustAmp = 1 + 1.3 * Math.max(0, wind(900, tw) - 0.32);   // breezes break the reflections up a little more
   const R = E.L.refl, S = R.cv.width / R.w, step = E.q ? 1 : 1.7;
   let y = 597;
   while (y < 1152) {
     const p = persp(y), h = lerp(1.4, 6.5, p) * step;
     const z = 2400 / (y - 586);
-    const amp = (0.35 + 5.2 * p * p) * gustAmp;
+    const amp = 0.35 + 5.2 * p * p;
     const off = amp * (0.62 * Math.sin(z * 0.95 - TAU * 31 * tw / LOOP + 0.3) + 0.38 * Math.sin(z * 2.35 + TAU * 47 * tw / LOOP));
     const dy = p * 1.4 * Math.sin(z * 1.7 - TAU * 23 * tw / LOOP);
     const sy = (y - R.y + dy) * S;
@@ -1418,6 +1403,7 @@ const TR = {
   oy: track([[0, 18], [23.6, 18], [23.95, 3], [27.25, 3], [27.4, 22], [27.7, 3], [30.05, 3], [30.45, 26], [31, 18], [33.4, 24], [34.2, 30], [38.5, 30], [39.2, 0], [48.2, 0], [49.6, -20], [50.1, -30], [51.2, -90], [52.4, -50], [53, 4], [54.5, 18], [60, 18]]),
 };
 const FLING_T0 = 30.05, CATCH_T = 31.0, FLING_G = 1400;
+const REVEAL_T = 32.1;   // he brings the catch forward to show it off: "tada" rays + the reveal sound start here
 let FLING = null, FEX = null;    // launch velocity solved so the fish lands exactly in his outstretched hand
 function flingPos(t) {
   if (!FLING) {
@@ -1511,11 +1497,12 @@ function rigAt(t, tw, mod) {
   }
   // rod
   const h = 0.06, plant = mod.plant || 0;
-  let a = mod.rodA !== undefined ? mod.rodA : TR.rodA(t);
+  let a = (mod.rodA !== undefined ? mod.rodA : TR.rodA(t)) + (mod.rodAdd || 0);
   if (plant) a = lerp(a, PLANT_A, plant);
   const acc = (a - 2 * TR.rodA(t - h) + TR.rodA(t - 2 * h)) / (h * h);
   const fightEnv = sstep(24, 24.4, t) * (1 - sstep(29.6, 30, t));
   let bend = TR.bend(t) + (mod.rodA !== undefined ? 0 : clamp(acc * 0.0032, -0.3, 0.3)) + 0.004 * osc(15, t) + fightEnv * (0.05 * Math.sin(t * 17) + 0.03 * Math.sin(t * 29));
+  bend += mod.bendAdd || 0;
   if (plant) bend = lerp(bend, 0.02, plant);
   r.fightEnv = fightEnv;
   const d = [-Math.cos(a), -Math.sin(a)];
@@ -2199,7 +2186,7 @@ function hintBubble(M, P) {
   }
   const el = document.createElement('div');
   el.className = 'rf-hint'; el.setAttribute('data-rf-ignore', ''); el.setAttribute('role', 'note');
-  el.setAttribute('aria-label', 'How to fish: 1, click the water to cast. 2, when the float plunges click, then hold the mouse to reel. 3, catch fish and treasures, each one a fun fact.');
+  el.setAttribute('aria-label', 'How to fish: 1, click the water to cast. 2, when a fish bites, hold the mouse to reel. 3, catch fish and treasures, each one a fun fact.');
   const icons = HINT_ICONS.slice(); icons[2] = catchIcons(M, P);
   el.innerHTML = icons.map((ic, i) => '<span class="rf-s"><span class="rf-n">' + (i + 1) + '</span>' + ic + '</span>').join('<span class="rf-sep"></span>');
   document.body.appendChild(el);
@@ -2259,9 +2246,9 @@ function bottleChoreo(el) {
   const k = { lh: 0, plant: sstep(0.5, 1.15, el), rodA: 1.3, g: [-14, -52] };
   const ang = bottleAng(el), w = lerp(8, NOTE_W, sstep(3.6, 4.35, el));
   // left hand: holds the bottle, drops it in the creel, then takes the note's left edge
-  if (el < 2.9) k.lf = BOTTLE_LB;
-  else if (el < 3.25) k.lf = lerp2(BOTTLE_LB, CREEL_L, sstep(2.9, 3.25, el));
-  else k.lf = lerp2(CREEL_L, [NOTE_C[0] - w / 2, NOTE_C[1]], sstep(3.25, 3.65, el));
+  if (el < 2.85) k.lf = BOTTLE_LB;
+  else if (el < 3.3) k.lf = lerp2(BOTTLE_LB, CREEL_L, sstep(2.85, 3.12, el));   // arrives ~3.12, lets go of it there
+  else k.lf = lerp2(CREEL_L, [NOTE_C[0] - w / 2, NOTE_C[1]], sstep(3.3, 3.62, el));
   // right hand: plants the rod, pops the cork, pulls the note, unrolls it
   const cork = bottlePt(BOTTLE_LB, ang, 20.5, 0), neck = bottlePt(BOTTLE_LB, ang, 18, 0);
   const axis = [Math.cos(ang), Math.sin(ang)];
@@ -2276,7 +2263,7 @@ function bottleChoreo(el) {
     else rf = [NOTE_C[0] + w / 2, NOTE_C[1]];
   }
   k.rf = rf; k.rfw = rfw;
-  k.bAng = ang; k.bScale = 1 - sstep(3.05, 3.25, el); k.corked = el < 2.0; k.noteIn = el < 2.45;
+  k.bAng = ang; k.bScale = 1 - sstep(3.1, 3.3, el); k.corked = el < 2.0; k.noteIn = el < 2.45;
   k.scroll = el < 2.45 ? null : el < 2.85 ? 'slide' : el < 3.6 ? 'held' : 'paper';
   k.slideU = sstep(2.45, 2.85, el); k.w = w;
   // acting
@@ -2351,6 +2338,10 @@ function drawNote(c, xl, xr, y, open) {
 /*  fight minigame (hold to raise the bar over the fish) → catch/escape */
 /* ------------------------------------------------------------------ */
 const IDLE_A = 0.5, IDLE_B = 16, FIGHT_A = 24.4, FIGHT_B = 29.4;
+// game cast timing (elapsed seconds → keyed timeline): the swing at its normal pace, then the float flies out in ~1.2 s instead of 2.9
+const CAST_T = (el) => { const k = [[0, 47.2], [2.9, 50.1], [4.1, 53], [5.6, 54.5]];
+  for (let i = 1; i < k.length; i++) if (el <= k[i][0]) return lerp(k[i - 1][1], k[i][1], (el - k[i - 1][0]) / (k[i][0] - k[i - 1][0]));
+  return 54.5 + (el - 5.6); };
 const gss = (x, c, w) => Math.exp(-((x - c) / w) * ((x - c) / w));
 function blendRig(a, b, w) {
   if (!a || w >= 1) return b;
@@ -2372,7 +2363,7 @@ function clampCast(p) {
   return [x, y];
 }
 function createGame() {
-  return { state: 'idle', clock: 0, st: 0, cyc: 0, cursor: null, hold: false, rings: [], drops: [], fired: {},
+  return { state: 'idle', clock: 0, st: 0, cyc: 0, cursor: null, hold: false, rings: [], drops: [], fired: {}, sfx: [],
     fromR: null, bT0: -9, bDur: 0.35, fromE: null, eT0: -9, lastR: null, lastE: null, look: 0, ml: 0, R: null, S: null };
 }
 function setState(G, s) {
@@ -2390,9 +2381,10 @@ function addDrops(G, x, y, n, sp0, sp1, spread, smax, vxb) {
 }
 function newFish(G, delay) {
   const r = Math.random, a = G.clock + delay;
-  const n1 = a + 1.8 + r() * 0.8, n2 = n1 + 0.7 + r() * 0.8, n3 = r() < 0.5 ? n2 + 0.5 + r() * 0.6 : 0;
-  const bite = (n3 || n2) + 0.8 + r() * 1.0;
-  G.fish = { arrive: a, nibs: n3 ? [n1, n2, n3] : [n1, n2], bite, biteEnd: bite + 0.95,
+  // about twice as quick as it used to be: the fish swims up, nibbles once or twice, then bites (~2-4 s after landing)
+  const n1 = a + 0.9 + r() * 0.4, n2 = n1 + 0.45 + r() * 0.4, n3 = n2 + 0.35 + r() * 0.3;
+  const bite = n3 + 0.5 + r() * 0.5;
+  G.fish = { arrive: a, nibs: [n1, n2, n3], bite, biteEnd: bite + 0.95,
     from: [G.target[0] - 140 - r() * 90, G.target[1] + 18 + r() * 30] };
   G.fired = {};
 }
@@ -2427,15 +2419,13 @@ function gameDismiss(G) {
   if (G.state === 'bottle' && G.bottleHold) { G.bottleHold = false; setState(G, 'bottleEnd'); return; }
   if (G.state !== 'show') return;
   if (G.catch.kind === 'fish') setState(G, 'release');
-  else { G.holdHand = G.lastR.hN.slice(); setState(G, 'stash'); G.bDur = 0.9; }
+  else { G.holdHand = G.lastR.hN.slice(); setState(G, 'stash'); G.bDur = 0.4; }
 }
 function startCast(G, target) { G.target = target; G.fish = null; G.hold = false; setState(G, 'cast'); }
 function gameDown(G) {
   if (G.state === 'idle') { if (G.cursor) startCast(G, clampCast(G.cursor)); }
   else if (G.state === 'wait') {
-    const F = G.fish;
-    if (F && G.clock >= F.bite - 0.05 && G.clock <= F.biteEnd) { G.hookFrom = G.lastE.slice(0, 2); setState(G, 'hook'); }
-    else if (G.cursor) startCast(G, clampCast(G.cursor));
+    if (G.cursor) startCast(G, clampCast(G.cursor));
   } else if (G.state === 'fight') G.hold = true;
   else if (G.state === 'show' && G.clock - G.st > 0.5) gameDismiss(G);
   else if (G.state === 'bottle' && G.bottleHold && G.clock - G.holdT > 0.5) gameDismiss(G);
@@ -2447,6 +2437,8 @@ function dangle(tip, tipLag) {
 function updateMinigame(G, dt) {
   const m = G.mg, c = G.clock;
   m.show = Math.min(1, m.show + dt * 4);
+  if (G.hold && !m.held) { m.held = true; m.graceEnd = Math.min(m.t0 + 3.5, Math.max(m.graceEnd, c + 0.9)); }
+  const grace = c < m.graceEnd;
   m.vz += (G.hold ? 3.4 : -2.8) * dt; m.vz *= Math.exp(-0.9 * dt);
   m.z += m.vz * dt;
   const lo = m.zh / 2, hi = 1 - m.zh / 2;
@@ -2454,8 +2446,9 @@ function updateMinigame(G, dt) {
   if (m.z > hi) { m.z = hi; m.vz = Math.min(0, -m.vz * 0.3); }
   m.big = false;
   // camping at the top or bottom of the bar doesn't work: the fish heads the other way
-  m.camp = (m.z <= lo + 0.01 || m.z >= hi - 0.01) ? (m.camp || 0) + dt : 0;
+  m.camp = !grace && (m.z <= lo + 0.01 || m.z >= hi - 0.01) ? (m.camp || 0) + dt : 0;
   if (m.camp > 0.7 && c < m.next - 0.15) m.next = c;
+  if (grace) m.next = Math.max(m.next, m.graceEnd);
   if (c >= m.next) {   // the fish darts about: small wobbles and sudden big runs
     const big = Math.random() < 0.38 || m.camp > 0.7;
     let ft = clamp(big ? Math.random() : m.f + (Math.random() * 2 - 1) * 0.3, 0.04, 0.96);
@@ -2467,12 +2460,14 @@ function updateMinigame(G, dt) {
   const pf = m.f; m.f += clamp((m.ft - m.f) * Math.min(1, dt * m.fk), -1.5 * dt, 1.5 * dt); m.fv = (m.f - pf) / Math.max(dt, 1e-3);
   m.fj = clamp(m.f + 0.012 * Math.sin(c * 23), 0, 1);
   m.inside = Math.abs(m.fj - m.z) < m.zh / 2;
-  m.p = clamp(m.p + (m.inside ? 0.28 : -0.19) * dt, 0, 1);
+  m.p = clamp(m.p + (m.inside ? 0.28 : grace ? 0 : -0.19) * dt, 0, 1);
 }
 /** advance the game and build this frame's pose (R) and line/float/fish state (S) */
 function updateGame(Eng, dt, tw) {
   const G = Eng.game, Cc = Eng.Cc;
   G.clock += dt; const c = G.clock, el = c - G.st;
+  const foc = G.state === 'hook' || G.state === 'fight';   // "fish on!": the page steps back while he fights it
+  if (foc && !G.focusOn) { G.focusOn = true; G.focusT = c; G.holdW = 0; } else if (!foc && G.focusOn) { G.focusOn = false; G.focusOffT = c; }
   G.drops = G.drops.filter((d) => c - d.t0 < 1.7);
   G.rings = G.rings.filter((r) => c - r.born < r.life + 1);
   if (G.mg && G.state !== 'fight') G.mg.out = Math.max(0, (G.mg.out || 0) - dt * 3);
@@ -2498,7 +2493,7 @@ function updateGame(Eng, dt, tw) {
       break;
     }
     case 'cast': {
-      ta = 47.2 + el; R = rigAt(ta, tw, mod);
+      ta = CAST_T(el); R = rigAt(ta, tw, mod);
       const tip = tipOf(R), T = G.target;
       const fp = [T[0] + 1.0 * Math.sin(c * 0.73), T[1] + 1.1 * Math.sin(c * 1.57)];
       if (ta < 48.2) E = dangle(tip, tipOf(rigAt(ta - 0.3)));
@@ -2509,15 +2504,16 @@ function updateGame(Eng, dt, tw) {
       } else if (ta < 53) E = qb(Cc.Bk, [(Cc.Bk[0] + T[0]) / 2 - 60, -40], fp, CASTP(ta));
       else E = fp;
       S.fOff = 24 * (1 - sstep(52.6, 53, ta)); S.floatA = 1; S.taut = 0; S.waterY = T[1];
-      if (ta >= 53 && once(G, 'land')) { addRing(G, T[0], T[1] + 1, 30, 0.6, 3.5); addDrops(G, T[0], T[1], 6, 40, 110, 0.7, 1.6); }
-      if (ta >= 54.5) { setState(G, 'wait'); newFish(G, 0.6 + Math.random() * 2); }
+      if (ta >= 49.8 && once(G, 'swish')) G.sfx.push(['cast']);   // the rod comes forward and the line whips out
+      if (ta >= 53 && once(G, 'land')) { addRing(G, T[0], T[1] + 1, 30, 0.6, 3.5); addDrops(G, T[0], T[1], 6, 40, 110, 0.7, 1.6); G.sfx.push(['land']); }
+      if (ta >= 54.5) { setState(G, 'wait'); newFish(G, 0.3 + Math.random() * 0.8); }
       break;
     }
     case 'wait': {
       const F = G.fish, T = G.target;
       let ex = 0, dip = 0;
       if (F) {
-        F.nibs.forEach((n, i) => { dip += 2.6 * gss(c, n, 0.1); ex += 0.7 * gss(c, n, 0.6); if (c >= n && once(G, 'n' + i)) addRing(G, T[0], T[1] + 1, 12, 0.45, 2.4); });
+        F.nibs.forEach((n, i) => { dip += 2.6 * gss(c, n, 0.1); ex += 0.7 * gss(c, n, 0.6); if (c >= n && once(G, 'n' + i)) { addRing(G, T[0], T[1] + 1, 12, 0.45, 2.4); G.sfx.push(['nibble', i]); } });
         const biting = sstep(F.bite - 0.02, F.bite + 0.1, c) * (1 - sstep(F.biteEnd - 0.15, F.biteEnd, c));
         dip += 10 * biting; ex = Math.max(ex, biting);
         if (c >= F.bite && once(G, 'bite')) { addRing(G, T[0], T[1] + 1, 26, 0.7, 3); addDrops(G, T[0], T[1], 4, 30, 80, 0.6, 1.3); }
@@ -2528,6 +2524,11 @@ function updateGame(Eng, dt, tw) {
       ta = cyc(IDLE_A, IDLE_B); R = rigAt(ta, tw, mod);
       const fp = [T[0] + 1.0 * Math.sin(c * 0.73), T[1] + 1.1 * Math.sin(c * 1.57)];
       E = [fp[0], fp[1] + dip]; S.fOff = 0; S.floatA = 1; S.taut = 0; S.waterY = fp[1];
+      if (F && c >= F.bite + 0.08) {   // fish on: he strikes by himself and the reel bar comes up right away
+        G.hookFrom = E.slice(0, 2); setState(G, 'hook');
+        G.mg = { z: 0.3, vz: 0, f: 0.55, f0: 0.55, ft: 0.55, fk: 3, fv: 0, fj: 0.55, next: c + 2, p: 0.35, zh: 0.3, show: 0, inside: false, out: 0,
+          t0: c, graceEnd: c + 2, held: false };   // the zone starts under the fish and sinks: pressing is the first thing to do
+      }
       break;
     }
     case 'hook': {
@@ -2536,29 +2537,30 @@ function updateGame(Eng, dt, tw) {
       const h = G.hookFrom, s = sstep(23.55, 24, ta);
       E = [h[0] + 16 * s, h[1] + 5 * s]; S.floatA = 1 - sstep(23.6, 23.9, ta); S.fOff = 0; S.waterY = h[1] - 0.5;
       S.taut = sstep(23.7, 23.95, ta);
-      if (once(G, 'set')) { addRing(G, h[0], h[1] + 1, 40, 0.7, 3.5); addDrops(G, h[0], h[1], 8, 80, 200, 0.8, 2); }
-      if (ta >= 24) {
-        setState(G, 'fight'); G.hookPt = E.slice(0, 2); G.catch = pickCatch(G);
-        G.mg = { z: 0.3, vz: 0, f: 0.3, ft: 0.55, fk: 3, fv: 0, fj: 0.3, next: c + 0.5, p: 0.35, zh: 0.3, show: 0, inside: true, out: 0 };
-      }
+      if (once(G, 'set')) { addRing(G, h[0], h[1] + 1, 40, 0.7, 3.5); addDrops(G, h[0], h[1], 8, 80, 200, 0.8, 2); G.sfx.push(['hook']); }
+      if (G.mg) G.mg.show = Math.min(1, G.mg.show + dt * 5);
+      if (ta >= 24) { setState(G, 'fight'); G.hookPt = E.slice(0, 2); G.catch = pickCatch(G); }
       break;
     }
     case 'fight': {
       updateMinigame(G, dt);
       const m = G.mg, hp = G.hookPt;
       G.ml += ((m.inside ? -0.06 : 0.07) - G.ml) * Math.min(1, dt * 4);
-      mod.lean += G.ml; mod.strain = 1; mod.flush = 1; mod.brow = -1; mod.joy = 0; mod.ew = 1;
+      G.holdW = (G.holdW || 0) + ((G.hold ? 1 : 0) - (G.holdW || 0)) * Math.min(1, dt * 8);   // holding = hauling on the rod
+      mod.lean += G.ml - 0.09 * G.holdW; mod.rodAdd = 0.13 * G.holdW; mod.bendAdd = 0.2 * G.holdW;
+      mod.strain = 1; mod.flush = 1; mod.brow = -1; mod.joy = 0; mod.ew = 1;
       ta = cyc(FIGHT_A, FIGHT_B); R = rigAt(ta, tw, mod);
       // the fish's place in the bar maps to how far it has run out to the left
-      let x = hp[0] - 230 * (m.f - 0.3) + 5 * Math.sin(c * 13), y = hp[1] + 4 + 3 * Math.sin(c * 7);
+      let x = hp[0] - 230 * (m.f - (m.f0 || 0.3)) + 5 * Math.sin(c * 13), y = hp[1] + 4 + 3 * Math.sin(c * 7);
       x = clamp(x, 30, bankX(y) - 40); y = Math.max(y, farWater(x) + 10);
       E = [x, y];
       const vx = -230 * m.fv;
       S.fight = { x, y, ang: vx < 0 ? Math.PI : 0, a: 1, v: Math.abs(vx) + 40 };
       S.fOff = 0; S.floatA = 0; S.taut = 1; S.waterY = y; S.flashT = el;
-      if (m.big) { addRing(G, x, y, 34, 0.55, 3); addDrops(G, x, y, 10, 90, 260, 1.1, 2.2); }
+      if (m.big) { addRing(G, x, y, 34, 0.55, 3); addDrops(G, x, y, 10, 90, 260, 1.1, 2.2); G.sfx.push(['thrash', 0.65]); }
+      else if (Math.random() < dt * 1.4) G.sfx.push(['thrash', 0.22 + 0.18 * Math.random()]);   // it thrashes about
       if (m.p >= 1) { G.fex = E.slice(); FEX = G.fex; FLING = null; setState(G, 'catch'); }
-      else if (m.p <= 0) { G.escFrom = E.slice(); setState(G, 'escape'); addRing(G, x, y, 40, 0.65, 3.5); addDrops(G, x, y, 12, 90, 260, 1.1, 2.2); }
+      else if (m.p <= 0) { G.escFrom = E.slice(); setState(G, 'escape'); addRing(G, x, y, 40, 0.65, 3.5); addDrops(G, x, y, 12, 90, 260, 1.1, 2.2); G.sfx.push(['escape']); }
       break;
     }
     case 'catch': case 'show': case 'release': {
@@ -2579,7 +2581,7 @@ function updateGame(Eng, dt, tw) {
         S.fish = null; if (ta >= CATCH_T) S.anchor = 1;
       } else if (S.fish && ta >= CATCH_T && ta < 41.9) S.anchor = 2;
       if (G.state === 'catch') {
-        if (ta >= 30.0 && once(G, 'lift')) { addRing(G, G.fex[0], G.fex[1], 52, 0.75, 4); addDrops(G, G.fex[0], G.fex[1], 26, 120, 420, 1.0, 3.2, 60); }
+        if (ta >= 30.0 && once(G, 'lift')) { addRing(G, G.fex[0], G.fex[1], 52, 0.75, 4); addDrops(G, G.fex[0], G.fex[1], 26, 120, 420, 1.0, 3.2, 60); G.sfx.push(['fling']); }
         if (ta >= CATCH_T && once(G, 'grab')) { const hw = toW(R.hN); addDrops(G, hw[0] - 10, hw[1], 9, 60, 180, 1.3, 1.8); }
         if (kind === 'bottle' && ta >= 31.9) { setState(G, 'bottle'); G.corkPop = null; G.bottleHold = false; }
         else if (ta >= 33.6) { setState(G, 'show'); if (G.onCatch) G.onCatch(G.catch); }
@@ -2593,6 +2595,7 @@ function updateGame(Eng, dt, tw) {
     }
     case 'bottle': case 'bottleEnd': {
       const k = G.state === 'bottle' ? bottleChoreo(el) : bottleEndChoreo(el);
+      if (G.state === 'bottle' && el >= 3.1 && once(G, 'basket')) G.sfx.push(['basket']);   // the empty bottle goes into the creel
       if (G.state === 'bottle' && el >= BOTTLE_HOLD && !G.bottleHold) { G.bottleHold = true; G.holdT = c; if (G.onCatch) G.onCatch(G.catch); }
       mod.lf = k.lf; mod.lh = k.lh; mod.rf = k.rf; mod.rfw = k.rfw; mod.plant = k.plant;
       if (k.rodA !== undefined) { mod.rodA = k.rodA; mod.g = k.g; }
@@ -2643,13 +2646,14 @@ function updateGame(Eng, dt, tw) {
     }
     case 'stash': {   // a treasure goes into the creel at his hip
       const u = sstep(0, 0.9, el);
-      mod.lh = 1 - sstep(1.15, 1.6, el); mod.lf = [lerp(G.holdHand[0], -12, u), lerp(G.holdHand[1], -70, u)];
+      mod.lh = sstep(1.15, 1.6, el); mod.lf = [lerp(G.holdHand[0], CREEL_L[0], u), lerp(G.holdHand[1], CREEL_L[1], u)];   // free hand to the creel, then back to the rod
       mod.joy = 0.7; mod.brow = 0.4; mod.ew = 1 - sstep(1.2, 1.7, el);
       ta = cyc(IDLE_A, IDLE_B); R = rigAt(ta, tw, mod);
       const tip = tipOf(R), hw = toW(R.hN), g = GRIP[G.catch.kind];
       E = dangle(tip, tipOf(rigAt(ta - 0.3)));
-      const sc = 1 - sstep(0.75, 1.1, el);
-      if (sc > 0.01) { S.treasure = { kind: G.catch.kind, x: hw[0], y: hw[1], ang: lerp(g.ang, 0, u), sc, a: 1 }; S.anchor = 1; }
+      const sink = sstep(0.9, 1.12, el), sc = 1 - sink;   // it drops into the creel once his hand is over it
+      if (el >= 0.88 && once(G, 'basket')) G.sfx.push(['basket']);
+      if (sc > 0.01) { S.treasure = { kind: G.catch.kind, x: hw[0], y: hw[1], ang: lerp(g.ang, 0, u), sc, a: 1, sink }; S.anchor = 1; }
       S.fOff = 24; S.floatA = 1; S.taut = 0; S.waterY = E[1];
       if (el >= 1.75) setState(G, 'idle');
       break;
@@ -2675,13 +2679,13 @@ function updateGame(Eng, dt, tw) {
   const tip = toW(R.tip);
   if (S.anchor) {   // whatever he's holding stays glued to his (blended) hand
     const hw = toW(R.hN);
-    if (S.anchor === 1 && S.treasure) { S.treasure.x = hw[0]; S.treasure.y = hw[1]; }
+    if (S.anchor === 1 && S.treasure) { S.treasure.x = hw[0]; S.treasure.y = hw[1] + 10 * (S.treasure.sink || 0); }
     if (S.anchor === 2 && S.fish) { S.fish.x = hw[0] - 21; S.fish.y = hw[1] + 1; }
     if (G.state !== 'stash' && ta < 38.5) E = [hw[0] - 21, hw[1] + 1];
   }
   if (S.bottleK) {
     const k = S.bottleK, hN = R.hN, hF = R.hF, wN = toW(hN), wF = toW(hF);
-    if (G.state === 'bottle' && k.bScale > 0.01) S.treasure = { kind: 'bottle', x: wN[0], y: wN[1], ang: k.bAng, sc: k.bScale, a: 1, o: { corked: k.corked, noteIn: k.noteIn } };
+    if (G.state === 'bottle' && k.bScale > 0.01) S.treasure = { kind: 'bottle', x: wN[0], y: wN[1] + 10 * (1 - k.bScale), ang: k.bAng, sc: k.bScale, a: 1, o: { corked: k.corked, noteIn: k.noteIn } };
     if (k.scroll === 'slide') { const nw = toW(bottlePt(hN, k.bAng, 18, 0)); S.scrollDraw = { x: (nw[0] + wF[0]) / 2, y: (nw[1] + wF[1]) / 2, ang: k.bAng, len: 16, sc: 1 }; }
     else if (k.scroll === 'held') S.scrollDraw = { x: wF[0] - 7, y: wF[1], ang: 0, len: 18, sc: k.scrollScale === undefined ? 1 : k.scrollScale };
     else if (k.scroll === 'paper') { S.note = { xl: wN[0], xr: wF[0], y: (wN[1] + wF[1]) / 2, open: (k.w - 8) / (NOTE_W - 8) }; S.handsFront = true; }
@@ -2694,6 +2698,21 @@ function updateGame(Eng, dt, tw) {
   const w = wind(900, tw);
   if (S.hang && S.ctrl0) S.ctrl = [lerp((tip[0] + E[0]) / 2, S.ctrl0[0], ew), lerp((tip[1] + E[1]) / 2, S.ctrl0[1], ew)];
   else S.ctrl = [(tip[0] + E[0]) / 2 + TR.ox(ta) + w * 10, (tip[1] + E[1]) / 2 + TR.oy(ta) + (S.slack || 0) * 50];
+  // the message in a bottle gets its "tada" when the note is unrolled, not for the bottle itself
+  const isBottle = G.catch && G.catch.kind === 'bottle';
+  const tadaWant = isBottle ? (G.state === 'bottle' && !!S.note && S.note.open > 0.6)
+    : ((G.state === 'catch' && ta >= REVEAL_T) || G.state === 'show') && !!(S.treasure || S.fish);
+  if (tadaWant && !G.tadaOn) { G.tadaOn = true; G.tadaT = c; G.sfx.push(['reveal']); } else if (!tadaWant && G.tadaOn) { G.tadaOn = false; G.tadaOffT = c; }
+  if (tadaWant && isBottle) G.tadaPos = [(S.note.xl + S.note.xr) / 2, S.note.y];
+  else if (tadaWant) {   // centre on the item itself, not the hand gripping it
+    const it = S.treasure || S.fish, g = S.treasure && GRIP[S.treasure.kind];
+    if (g) { const k = g.s * (it.sc || 1), q = rot(-g.dx * k, -g.dy * k, it.ang || 0); G.tadaPos = [it.x + q[0], it.y + q[1]]; }
+    else G.tadaPos = [it.x, it.y];
+  }
+  if (G.tadaPos && G.tadaT !== undefined) {
+    const a = G.tadaOn ? sstep(0, 0.3, c - G.tadaT) : 1 - sstep(0, 0.45, c - (G.tadaOffT || 0));
+    S.tada = a > 0.01 ? { x: G.tadaPos[0], y: G.tadaPos[1], a, pop: G.tadaOn ? sstep(0, 0.45, c - G.tadaT) : 1, t: c } : null;
+  }
   G.lastR = R; G.lastE = E; G.R = R; G.S = S;
 }
 function waitShadow(G) {
@@ -2730,13 +2749,54 @@ function rrect(c, x, y, w, h, r) {
   c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
   c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
 }
+/** "tada!": warm spotlight rays fanning out from the catch he's holding up, with a soft glow at the centre */
+function drawTada(c, T, q) {
+  const n = q ? 14 : 10, r0 = 12, len = 175 * (0.55 + 0.45 * T.pop), spin = T.t * 0.18;
+  c.save(); c.translate(T.x, T.y); c.globalCompositeOperation = 'screen';
+  const glow = c.createRadialGradient(0, 0, 0, 0, 0, 58 * (0.6 + 0.4 * T.pop));
+  glow.addColorStop(0, 'rgba(255,242,206,' + (0.75 * T.a).toFixed(3) + ')'); glow.addColorStop(1, 'rgba(255,240,200,0)');
+  c.fillStyle = glow; c.beginPath(); c.arc(0, 0, 58, 0, TAU); c.fill();
+  const beam = c.createRadialGradient(0, 0, r0, 0, 0, len);
+  beam.addColorStop(0, 'rgba(255,238,190,' + (0.78 * T.a).toFixed(3) + ')'); beam.addColorStop(0.55, 'rgba(255,226,160,' + (0.34 * T.a).toFixed(3) + ')'); beam.addColorStop(1, 'rgba(255,226,160,0)');
+  c.fillStyle = beam;
+  for (let i = 0; i < n; i++) {
+    const a = spin + i / n * TAU, w = (i % 2 ? 0.075 : 0.12) * (0.7 + 0.3 * T.pop), l = len * (i % 2 ? 0.78 : 1);
+    c.beginPath(); c.moveTo(Math.cos(a - w * 0.35) * r0, Math.sin(a - w * 0.35) * r0);
+    c.lineTo(Math.cos(a - w) * l, Math.sin(a - w) * l); c.lineTo(Math.cos(a + w) * l, Math.sin(a + w) * l);
+    c.lineTo(Math.cos(a + w * 0.35) * r0, Math.sin(a + w * 0.35) * r0); c.closePath(); c.fill();
+  }
+  c.restore();
+}
+/** a little mouse with its left button pressed (and an up arrow) or released (down arrow), next to the reel bar */
+function drawMouseCue(c, x, y, pressed) {
+  const ink = 'rgba(46,30,24,0.92)', hot = 'rgb(224,96,63)', cream = '#fffaf0';
+  c.save(); c.translate(x, y); c.shadowColor = 'rgba(20,32,34,0.35)'; c.shadowBlur = 5;
+  rrect(c, -7, -11, 14, 22, 7); c.fillStyle = cream; c.fill(); c.shadowBlur = 0;
+  if (pressed) { c.beginPath(); c.moveTo(0, -11); c.arc(0, -4, 7, -Math.PI / 2, -Math.PI, true); c.lineTo(-7, -2); c.lineTo(0, -2); c.closePath(); c.fillStyle = hot; c.fill(); }
+  rrect(c, -7, -11, 14, 22, 7); c.lineWidth = 1.6; c.strokeStyle = ink; c.stroke();
+  c.beginPath(); c.moveTo(0, -11); c.lineTo(0, -2); c.moveTo(-7, -2); c.lineTo(7, -2); c.lineWidth = 1.2; c.stroke();
+  // arrow: up while pressed, down when released
+  c.translate(16, 0); c.scale(1, pressed ? 1 : -1);
+  c.beginPath(); c.moveTo(0, 8); c.lineTo(0, -7); c.moveTo(-5, -2); c.lineTo(0, -8); c.lineTo(5, -2);
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 4.4; c.strokeStyle = ink; c.stroke();
+  c.lineWidth = 2.2; c.strokeStyle = pressed ? 'rgb(170,226,120)' : cream; c.stroke();
+  c.restore();
+}
 /** the reel bar: hold to lift the green zone, keep the fish inside it */
 function drawMinigame(c, G) {
   const m = G.mg; if (!m) return;
-  const a = G.state === 'fight' ? m.show : (m.out || 0);
+  const a = G.state === 'fight' || G.state === 'hook' ? m.show : (m.out || 0);
   if (a <= 0.01) return;
   const x = 1222, y0 = 546, h = 232, w = 20, cx = x + w / 2, cy = y0 + h / 2, sc = 0.82 + 0.18 * a;
   c.save(); c.globalAlpha = a; c.translate(cx, cy); c.scale(sc, sc); c.translate(-cx, -cy);
+  // "hold to reel!" to the left of the bar, in the hero's serif (still: it fades with the bar)
+  c.save(); c.translate(x - 10, cy);
+  c.font = '600 13px ui-serif, Georgia, "Times New Roman", serif'; c.textAlign = 'right'; c.textBaseline = 'middle';
+  c.shadowColor = 'rgba(20,32,34,0.45)'; c.shadowBlur = 6;
+  c.fillStyle = '#fffaf0'; c.fillText('hold to reel!', 0, 0);
+  const pressed = m.held ? G.hold : (G.clock * 1.25) % 2 < 1;   // demo loop until the first press, then live
+  drawMouseCue(c, -44, -34, pressed);
+  c.restore();
   rrect(c, x, y0, w, h, 10); c.fillStyle = 'rgba(16,32,36,0.6)'; c.fill();
   c.lineWidth = 3.2; c.strokeStyle = 'rgba(46,30,24,0.85)'; c.stroke();
   c.lineWidth = 1.4; c.strokeStyle = 'rgba(255,244,220,0.9)'; c.stroke();
@@ -2761,6 +2821,195 @@ function drawMinigame(c, G) {
   rrect(c, px + 1.5, y0 + h - 2 - ph, 4, ph, 2); c.fillStyle = rgba(col); c.fill();
   c.restore();
 }
+/** 0..1: how strongly the "fish on!" focus effects show (quick in, gentle out) */
+function focusAmt(G) {
+  if (!G || G.focusT === undefined) return 0;
+  if (G.focusOn) return sstep(0, 0.14, G.clock - G.focusT);
+  return G.focusOffT === undefined ? 0 : 1 - sstep(0, 0.5, G.clock - G.focusOffT);
+}
+/** a hand-inked "!" over his head from the moment a fish takes the hook (fades in and out, no other motion) */
+function drawAlert(c, G, R) {
+  const a = focusAmt(G); if (a <= 0.01 || !R) return;
+  const h = toW(R.headC);   // no motion of its own: it just fades in and out over his head
+  c.save(); c.globalAlpha = a;
+  c.translate(h[0] + 6, h[1] - 42 * FS); c.rotate(-0.1); c.scale(FS * 1.15, FS * 1.15);
+  c.lineJoin = 'round'; c.lineCap = 'round';
+  // the mark: an even, round-ended red bar and a dot, with the scene's ink outline
+  const RED = 'rgb(222,62,48)';
+  c.beginPath(); c.moveTo(0, -38); c.lineTo(0, -14);
+  c.lineWidth = 7.6 + 5.6; c.strokeStyle = INK; c.stroke();
+  c.lineWidth = 7.6; c.strokeStyle = RED; c.stroke();
+  c.beginPath(); c.arc(0, -1.5, 4.4, 0, TAU); c.fillStyle = RED; c.fill(); c.lineWidth = 2.8; c.strokeStyle = INK; c.stroke();
+  // little surprise ticks either side
+  c.lineWidth = 2.6;
+  for (const [x0, y0, x1, y1] of [[-14, -34, -22, -40], [-15, -22, -25, -22], [14, -34, 22, -40], [15, -22, 25, -22]]) { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+  c.restore();
+}
+/** manga-style action lines rushing in from the screen edges while the fish fights (screen space, redrawn on twos) */
+function drawActionLines(c, G, w, h, dpr, q) {
+  const a = focusAmt(G); if (a <= 0.01) return;
+  const frame = Math.floor(G.clock * 12), rnd = mulberry32(frame * 7919 + 13);
+  const n = q ? 84 : 40, cx = w / 2, cy = h / 2, reach = Math.min(w, h);
+  const surge = G.mg && G.mg.big ? 1.25 : 1;
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < n; i++) {
+    const ang = (i + rnd() * 0.8) / n * TAU;
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    // where this ray leaves the screen rectangle
+    const tEdge = Math.min(dx ? (dx > 0 ? (w - cx) / dx : -cx / dx) : Infinity, dy ? (dy > 0 ? (h - cy) / dy : -cy / dy) : Infinity) * 1.02;
+    const len = reach * (0.07 + rnd() * 0.16) * surge * (0.55 + 0.45 * a);
+    const ex = cx + dx * tEdge, ey = cy + dy * tEdge, ix = ex - dx * len, iy = ey - dy * len;
+    const half = (1.2 + rnd() * 3.4) * dpr, nx = -dy * half, ny = dx * half;
+    c.globalAlpha = a * (0.28 + rnd() * 0.42);
+    c.fillStyle = rnd() < 0.82 ? 'rgb(36,26,22)' : 'rgb(255,250,240)';
+    c.beginPath(); c.moveTo(ex + nx, ey + ny); c.lineTo(ix, iy); c.lineTo(ex - nx, ey - ny); c.closePath(); c.fill();
+  }
+  c.restore();
+}
+
+/** draw one catch, as held up, on its own canvas (size × size CSS px): handy for listing the catches outside the scene */
+function catchArt(kind, size) {
+  const g = GRIP[kind]; if (!g || (kind !== 'jjajangmyeon' && kind !== 'bottle' && kind !== 'viola' && kind !== 'tinikling' && kind !== 'hongkong' && !g.img)) return null;
+  // draw big on a scratch canvas, find its edges, then fit it into the output with a little padding
+  const W = 480, sc = 3, tmp = document.createElement('canvas'); tmp.width = tmp.height = W;
+  const t = tmp.getContext('2d'); t.lineJoin = 'round'; t.lineCap = 'round';
+  const q = rot(-g.dx * g.s * sc, -g.dy * g.s * sc, g.ang);
+  drawTreasure(t, kind, W / 2 - q[0], W / 2 - q[1], g.ang, sc, 1, { corked: true, noteIn: true });
+  const d = t.getImageData(0, 0, W, W).data; let x0 = W, y0 = W, x1 = 0, y1 = 0;
+  for (let y = 0; y < W; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 <= x0) return null;
+  const dpr = Math.min(2, window.devicePixelRatio || 1), out = document.createElement('canvas');
+  out.width = out.height = Math.round(size * dpr); out.style.width = out.style.height = size + 'px';
+  const o = out.getContext('2d'), bw = x1 - x0 + 4, bh = y1 - y0 + 4, k = (size * dpr * 0.84) / Math.max(bw, bh);
+  o.drawImage(tmp, x0 - 2, y0 - 2, bw, bh, (out.width - bw * k) / 2, (out.height - bh * k) / 2, bw * k, bh * k);
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sound: synthesised with Web Audio (no audio files)                 */
+/*  reel ratchet ticks · splashes · a shimmer for the "tada"            */
+/* ------------------------------------------------------------------ */
+function createSfx(muted, specs) {
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  let ac = null, out = null, noise = null;
+  const X = { muted: !!muted, vol: 0.55, level: 1, played: [], files: {}, media: {}, specs: {} };
+  for (const k in specs || {}) X.specs[k] = typeof specs[k] === 'string' ? { src: specs[k] } : specs[k];
+  /** fetch + decode the sound files once audio is allowed. When the page is opened straight from disk (file://) the
+   *  browser blocks fetch, so those files play through plain <audio> elements instead (no volume boost above 1 there).
+   *  A file that can't load at all falls back to the synth. */
+  const live = new Set();   // <audio> elements currently playing (so muting can silence them at once)
+  const mediaFallback = (name) => {
+    const el = new Audio(); el.preload = 'auto';
+    el.addEventListener('canplaythrough', () => { X.media[name] = el; }, { once: true });
+    el.src = X.specs[name].src; el.load();
+  };
+  const loadFiles = () => {
+    for (const name in X.specs) {
+      if (X.files[name] !== undefined) continue; X.files[name] = null;
+      if (location.protocol === 'file:') { mediaFallback(name); continue; }
+      fetch(X.specs[name].src).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        .then((b) => new Promise((res, rej) => ac.decodeAudioData(b, res, rej))).then((buf) => { X.files[name] = buf; })
+        .catch(() => mediaFallback(name));
+    }
+  };
+  /** play through an <audio> element (file:// pages); same slices, offsets and fades as the Web Audio path */
+  const playMedia = (name, sp, k, skip) => {
+    const base = X.media[name], vol = Math.min(1, X.vol * (sp.vol === undefined ? 1 : sp.vol) * 1.4);
+    const off = (sp.slices ? sp.slices[(k | 0) % sp.slices.length] : (sp.start || 0)) + (skip || 0);
+    const dur = (sp.dur || base.duration - (sp.start || 0)) - (skip || 0), fd = sp.fade || 0.06;
+    const a = base.cloneNode(); a.volume = 0; a.currentTime = off; live.add(a); a.addEventListener('pause', () => live.delete(a));
+    const p = a.play(); if (p && p.catch) p.catch(() => {});
+    const t0 = performance.now(), fin = (sp.fade || 0.012) * 1000;
+    const h = { media: a, dur, timer: 0 };
+    const stepVol = () => {   // fade in, hold, fade out, stop
+      const t = performance.now() - t0, end = dur * 1000;
+      if (t >= end || h.stopped) { a.pause(); return; }
+      a.volume = vol * Math.min(1, t / Math.max(1, fin), sp.dur ? Math.max(0, (end - t) / (fd * 1000)) : 1);
+      h.timer = setTimeout(stepVol, 30);
+    };
+    stepVol();
+    return h;
+  };
+  /** browsers only allow audio after a user gesture: call from pointer/key handlers */
+  X.unlock = () => {
+    try {
+      if (!ac) {
+        ac = new AC(); out = ac.createGain(); out.gain.value = X.muted ? 0 : X.vol;
+        const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+        out.connect(comp); comp.connect(ac.destination);
+        noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+        const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        loadFiles();
+      }
+      if (ac.state === 'suspended') ac.resume();
+    } catch (e) { ac = null; }
+  };
+  X.setLevel = (v) => { X.level = clamp(+v || 0, 0, 1); X.vol = 0.55 * X.level; if (ac && !X.muted) out.gain.setTargetAtTime(X.vol, ac.currentTime, 0.03); };
+  X.setMuted = (m) => { X.muted = !!m; if (ac) out.gain.setTargetAtTime(X.muted ? 0 : X.vol, ac.currentTime, 0.03); if (X.muted) for (const a of live) a.pause(); };
+  X.close = () => { if (ac && ac.close) ac.close(); ac = null; };
+  X.state = () => (ac ? ac.state : 'locked');
+  const ready = (name) => { X.played.push(name); if (X.played.length > 40) X.played.shift(); return ac && ac.state === 'running' && !X.muted; };
+  const noiseSrc = (t, dur) => { const n = ac.createBufferSource(); n.buffer = noise; n.loop = true; n.start(t, Math.random() * 0.8); n.stop(t + dur + 0.05); return n; };
+  const env = (g, t, a, peak, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); };
+  /** play a loaded sound file (k picks one of its slices); returns false if it isn't loaded, so the caller can use the synth */
+  X.file = (name, k, skip) => {
+    const sp = X.specs[name], buf = X.files[name]; if (!sp || (!buf && !X.media[name])) return false;
+    if (!ready(name)) return true;
+    if (!buf) return playMedia(name, sp, k, skip);
+    const t = ac.currentTime, vol = sp.vol === undefined ? 1 : sp.vol, fd = sp.fade || 0.06;
+    const off = (sp.slices ? sp.slices[(k | 0) % sp.slices.length] : (sp.start || 0)) + (skip || 0);
+    const dur = (sp.dur || buf.duration - (sp.start || 0)) - (skip || 0);
+    const src = ac.createBufferSource(), g = ac.createGain(); src.buffer = buf;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + (sp.fade || 0.012));
+    if (sp.dur) { g.gain.setValueAtTime(vol, t + Math.max(0.02, dur - fd)); g.gain.linearRampToValueAtTime(0, t + dur); }
+    src.connect(g); g.connect(out); src.start(t, off, dur + 0.02);
+    return { src, g, dur };
+  };
+  X.has = (name) => !!(X.files[name] || X.media[name]);
+  X.now = () => (ac ? ac.currentTime : 0);
+  /** fade a playing file out (used to end the fight loop) */
+  X.stop = (h, fade) => {
+    if (h && h.media) {   // <audio> fallback: quick fade, then pause
+      const a = h.media, v0 = a.volume, t0 = performance.now(), ms = (fade || 0.2) * 1000; h.stopped = true; clearTimeout(h.timer);
+      const f = () => { const u = (performance.now() - t0) / ms; if (u >= 1) { a.pause(); return; } a.volume = v0 * (1 - u); setTimeout(f, 30); }; f(); return;
+    }
+    if (!h || !ac) return; const t = ac.currentTime; try { h.g.gain.cancelScheduledValues(t); h.g.gain.setValueAtTime(h.g.gain.value, t); h.g.gain.linearRampToValueAtTime(0, t + (fade || 0.2)); h.src.stop(t + (fade || 0.2) + 0.02); } catch (e) {} };
+  /** one click of the reel's ratchet */
+  X.tick = (k) => {
+    if (!ready('tick')) return; const t = ac.currentTime; k = k || 1;
+    const n = noiseSrc(t, 0.03), bp = ac.createBiquadFilter(), g = ac.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 3000 + Math.random() * 700; bp.Q.value = 6;
+    env(g, t, 0.001, 0.32 * k, 0.018); n.connect(bp); bp.connect(g); g.connect(out);
+    const o = ac.createOscillator(), og = ac.createGain(); o.type = 'square'; o.frequency.value = 1350 + Math.random() * 150;
+    env(og, t, 0.001, 0.04 * k, 0.012); o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.03);
+  };
+  /** water: a burst of noise sweeping down, with a little "bloop" (k ≈ 0.3 ripple … 1 big splash) */
+  X.splash = (k) => {
+    if (!ready('splash')) return; const t = ac.currentTime; k = k || 1; const dur = 0.22 + 0.32 * k;
+    const n = noiseSrc(t, dur), hp = ac.createBiquadFilter(), lp = ac.createBiquadFilter(), g = ac.createGain();
+    hp.type = 'highpass'; hp.frequency.value = 180; lp.type = 'lowpass'; lp.Q.value = 0.8;
+    lp.frequency.setValueAtTime(2400 + 2000 * k, t); lp.frequency.exponentialRampToValueAtTime(420, t + dur);
+    env(g, t, 0.006, 0.5 * k, dur); n.connect(hp); hp.connect(lp); lp.connect(g); g.connect(out);
+    const o = ac.createOscillator(), og = ac.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(380 + 140 * Math.random(), t); o.frequency.exponentialRampToValueAtTime(120, t + 0.14);
+    env(og, t, 0.004, 0.2 * k, 0.14); o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.2);
+  };
+  /** "tada": a quick rising arpeggio of soft bells over a high sparkle */
+  X.shimmer = () => {
+    if (!ready('shimmer')) return; const t0 = ac.currentTime;
+    [1318.5, 1661.2, 1975.5, 2637].forEach((f, i) => {
+      const t = t0 + i * 0.07;
+      for (const [mul, amp, type] of [[1, 0.15, 'sine'], [2.01, 0.045, 'sine'], [3, 0.02, 'triangle']]) {
+        const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f * mul;
+        env(g, t, 0.004, amp, 0.95 - i * 0.1); o.connect(g); g.connect(out); o.start(t); o.stop(t + 1.1);
+      }
+    });
+    const n = noiseSrc(t0, 0.6), hp = ac.createBiquadFilter(), g = ac.createGain();
+    hp.type = 'highpass'; hp.frequency.setValueAtTime(5000, t0); hp.frequency.linearRampToValueAtTime(9000, t0 + 0.5);
+    env(g, t0, 0.02, 0.05, 0.5); n.connect(hp); hp.connect(g); g.connect(out);
+  };
+  return X;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Engine                                                             */
@@ -2779,6 +3028,7 @@ function createEngine(canvas, opts) {
   const o = Object.assign({ quality: 'high', parallax: true, startTime: 0, debug: false, reducedMotion: undefined, maxDpr: 2, time: undefined }, opts || {});
   const ctx = canvas.getContext('2d', { alpha: false });
   const E = { canvas, ctx, o, Y: LAYOUT, Cc: CATCH, q: o.quality === 'low' ? 0 : 1 };
+  E.reelPh = 0; E.loops = {};
   E.P = compilePalette('day'); E.M = charMats(E.P);
   E.acc = 0; E.last = 0; E.running = false; E.visible = true; E.pageVisible = !document.hidden; E.userPaused = false;
   E.mouse = { tx: 0, ty: 0, x: 0, y: 0 }; E.scroll = 0; E.raf = 0; E.perf = { avg: 0 }; E.S = 0;
@@ -2786,6 +3036,8 @@ function createEngine(canvas, opts) {
   E.rm = o.reducedMotion !== undefined ? !!o.reducedMotion : !!(mq && mq.matches);
   // interactive by default: the cursor is the bob (o.interactive === false keeps the passive 60 s loop)
   E.game = o.interactive !== false && !E.rm ? createGame() : null;
+  E.sfx = E.game && o.sound !== false ? createSfx(o.muted, o.sounds) : null;
+  if (E.sfx && o.volume !== undefined) E.sfx.setLevel(o.volume);
   if (E.game) {
     const F = {}; for (const k in DEFAULT_FACTS) F[k] = DEFAULT_FACTS[k];
     if (o.facts) for (const k in o.facts) if (Array.isArray(o.facts[k])) F[k] = o.facts[k].map((f) => (f && typeof f === 'object' ? f : String(f)));
@@ -2805,7 +3057,7 @@ function createEngine(canvas, opts) {
   E.ptr = null;
   if (E.game && o.hideCursor !== false && !document.getElementById('rf-cursor-style')) {
     const st = document.createElement('style'); st.id = 'rf-cursor-style';
-    st.textContent = 'html.rf-hide-cursor, html.rf-hide-cursor * { cursor: none !important; }';
+    st.textContent = 'html.rf-hide-cursor, html.rf-hide-cursor * { cursor: none !important; } html.rf-focus { overscroll-behavior: none; }';
     document.head.appendChild(st);
   }
 
@@ -2819,7 +3071,6 @@ function createEngine(canvas, opts) {
     L.tint = mkLayer(-80, 586, 2080, 574, S, (c) => paintWaterTint(c, P, WPATH));
     L.bank = mkLayer(-80, 586, 2080, 574, S, (c) => paintBank(c, P));
     L.trunk = mkLayer(1060, -80, 940, 1000, S, (c) => paintTrunk(c, P));
-    L.ruffle = makeRuffle(P, S);
     L.raysA = makeRays(P, S, 61); L.raysB = E.q ? makeRays(P, S, 62) : null;
     sp.clumps = E.Y.clumps.map((d) => makeClump(P, S, d));
     sp.bushes = E.Y.bushes.map((d) => makeBush(P, S, d));
@@ -2907,7 +3158,6 @@ function createEngine(canvas, opts) {
     drawFisherReflection(c, E, tw);
     c.drawImage(L.tint.cv, L.tint.x, L.tint.y, L.tint.w, L.tint.h);
     drawDapples(c, E, t, true);
-    drawBreeze(c, E, tw);
     drawWaterHighlights(c, E, t, tw);
     drawRings(c, E, t, E.game ? RISES : RINGS);
     if (E.game) drawRings(c, E, E.game.clock % LOOP, E.game.rings);
@@ -2927,6 +3177,7 @@ function createEngine(canvas, opts) {
     c.save(); c.translate(FISH_X, FISH_Y); c.scale(FS, FS); drawRod(c, R, P); drawHand(c, R.hF, R.elF, E.M, true); c.restore();
     if (rodBehind) c.drawImage(E.fs.cv, E.fs.x, E.fs.y, E.fs.w, E.fs.h);
     if (!S.noLine) drawLineAndFloat(c, S, P, ta);
+    if (S.tada) drawTada(c, S.tada, E.q);
     if (S.treasure) drawTreasure(c, S.treasure.kind, S.treasure.x, S.treasure.y, S.treasure.ang, S.treasure.sc, S.treasure.a, S.treasure.o);
     if (S.cork) { c.save(); c.globalAlpha = S.cork.a; c.translate(S.cork.x, S.cork.y); c.rotate(S.cork.ang); c.fillStyle = 'rgb(176,128,80)'; c.strokeStyle = INK; c.lineWidth = 0.9; c.fillRect(-3, -3.4, 6, 6.8); c.strokeRect(-3, -3.4, 6, 6.8); c.restore(); }
     if (S.scrollDraw) drawScroll(c, S.scrollDraw.x, S.scrollDraw.y, S.scrollDraw.ang, S.scrollDraw.len, S.scrollDraw.sc);
@@ -2943,7 +3194,7 @@ function createEngine(canvas, opts) {
     base(1); drawTufts(c, E, t, 2); drawReeds(c, E, t, 1);
     base(0.8); drawLeaves(c, E, t); drawFluff(c, E, t); drawFlies(c, E, t, (Math.floor(t * 24) & 1) === 1);
     if (E.game) {
-      base(0.55); drawMinigame(c, E.game);
+      base(0.55); drawMinigame(c, E.game); drawAlert(c, E.game, R);
       const G = E.game;   // while the line is out, the cursor is a ghost bob showing where the next cast goes
       if (G.cursor && G.ptrMouse && G.state !== 'idle' && G.state !== 'fight' && G.state !== 'hook') drawGhostBob(c, G.cursor[0], G.cursor[1], cs);
     }
@@ -2965,6 +3216,7 @@ function createEngine(canvas, opts) {
       c.fillStyle = E.grain[fi]; c.fillRect(0, 0, canvas.width + 160, canvas.height + 160);
     }
     c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+    if (E.game) drawActionLines(c, E.game, canvas.width, canvas.height, v.dpr, E.q);
   }
 
   function draw() {
@@ -2996,7 +3248,7 @@ function createEngine(canvas, opts) {
     E.mouse.x += (E.mouse.tx - E.mouse.x) * k; E.mouse.y += (E.mouse.ty - E.mouse.y) * k;
     const st = Math.min(14, (window.scrollY || 0) * 0.02);
     E.scroll += (st - E.scroll) * Math.min(1, k * 3);
-    if (E.game) { E.game.cursor = toScene(); updateGame(E, dt, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); syncCard(); syncHint(); }
+    if (E.game) { E.game.cursor = toScene(); updateGame(E, dt, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); syncCard(); syncHint(); syncFocus(); playSfx(dt); }
     draw();
     E.raf = requestAnimationFrame(tick);
   }
@@ -3103,6 +3355,51 @@ function createEngine(canvas, opts) {
       el.style.top = clamp(cy - hh - 8, 10, window.innerHeight - hh - 10) + 'px';
     }
   }
+  // sounds: drain the game's queue; the reel ratchets while he's hauling (holding during a fight, or reeling up the page)
+  function playSfx(dt) {
+    const G = E.game; if (!G) return;
+    const q = G.sfx; G.sfx = [];
+    if (!E.sfx) return;
+    const FALLBACK = { hook: ['splash', 0.75], reveal: ['shimmer'], thrash: ['splash'], fling: ['splash', 1], cast: [], land: ['splash', 0.3], escape: ['splash', 0.7] };   // synth stand-ins when a file isn't there
+    // looped clips: copies overlap end to end with soft fades so there's no seam; they fade out when their moment ends
+    const loop = (key, on, randomStart) => {
+      const L = E.loops[key] || (E.loops[key] = { h: null, next: 0 });
+      if (on && E.sfx.has(key)) {
+        const now = E.sfx.now(), sp = E.sfx.specs[key], fade = sp.fade || 0.25;
+        if (!L.h || now >= L.next) {
+          const full = (sp.dur || 2), skip = !L.h && randomStart ? Math.random() * Math.max(0, full - 1.5) : 0;
+          const h = E.sfx.file(key, 0, skip);
+          if (h && h.dur) { L.h = h; L.next = now + h.dur - fade; } else { L.h = L.h || { muted: true }; L.next = now + 0.5; }
+        }
+      } else if (L.h) { if (L.h.src || L.h.media) E.sfx.stop(L.h, 0.2); L.h = null; }
+    };
+    const hauling = (G.state === 'fight' && G.hold) || (G.state === 'reel' && G.reel && G.reel.phase !== 'loose');
+    // letting go mid-fight: the reel unwinds as the line runs back out (only the newest one plays, so tapping doesn't pile up;
+    // pressing again cuts it off). Falls back to the cast sound if there's no release file.
+    const relName = E.sfx.has('release') ? 'release' : E.sfx.has('cast') ? 'cast' : null;
+    if (relName && G.state === 'fight' && E.prevHold && !G.hold) {
+      if (E.releaseH && (E.releaseH.src || E.releaseH.media)) E.sfx.stop(E.releaseH, 0.08);
+      E.releaseH = E.sfx.file(relName);
+    } else if (E.releaseH && G.hold && !E.prevHold) { if (E.releaseH.src || E.releaseH.media) E.sfx.stop(E.releaseH, 0.1); E.releaseH = null; }
+    E.prevHold = G.state === 'fight' && G.hold;
+    loop('fight', G.state === 'hook' || G.state === 'fight' || (G.state === 'catch' && G.clock - G.st < 0.3));   // runs on 0.3 s past the catch
+    loop('reel', hauling, true);
+    for (const [name, k] of q) {
+      if (name === 'thrash' && E.sfx.has('fight')) continue;
+      if (E.sfx.file(name, k)) continue;
+      const fb = FALLBACK[name] || [name, k];
+      if (fb.length && typeof E.sfx[fb[0]] === 'function' && !['file', 'unlock', 'setMuted', 'close', 'state'].includes(fb[0])) E.sfx[fb[0]](fb[1]);
+    }
+    if (hauling && !E.sfx.has('reel')) { E.reelPh += dt * (G.state === 'fight' && G.mg && !G.mg.inside ? 15 : 22); while (E.reelPh >= 1) { E.reelPh -= 1; E.sfx.tick(0.8 + 0.4 * Math.random()); } }
+    else E.reelPh = 0.6;
+  }
+  // "fish on!": while he strikes and fights, html.rf-focus hides the page's text and buttons (page CSS) and the scroll is held
+  function syncFocus() {
+    const on = !!(E.game && E.game.focusOn);
+    if (on === !!E.focus) return;
+    E.focus = on; E.lockY = window.scrollY || 0;
+    root.classList.toggle('rf-focus', on);
+  }
   // the fun-fact card follows the catch he's holding up
   function syncCard() {
     const G = E.game; if (!G) return;
@@ -3147,6 +3444,7 @@ function createEngine(canvas, opts) {
     if (o.hideCursor !== false) root.classList.toggle('rf-hide-cursor', inside && !ui && e.pointerType === 'mouse');
   };
   const onPtrDown = (e) => {
+    if (E.sfx) E.sfx.unlock();
     if (!E.game || e.button !== 0 || isUI(e.target) || E.destroyed) return;
     onPtrMove(e);
     if (!E.ptr && E.game.state !== 'fight') return;   // clicked on page content below the hero: not a cast
@@ -3160,10 +3458,16 @@ function createEngine(canvas, opts) {
     if (e.clientY <= heroBottom) e.preventDefault();   // no text-selection drags while fishing (content below stays selectable)
   };   // no text-selection drags while fishing
   const onKey = (e) => {
+    if (E.sfx && e.type === 'keydown') E.sfx.unlock();
     if (!E.game || e.code !== 'Space' || isUI(document.activeElement) || E.game.state !== 'fight') return;
     e.preventDefault(); E.game.hold = e.type === 'keydown';
   };
   const onOut = (e) => { if (E.game && !e.relatedTarget) { E.ptr = null; root.classList.remove('rf-hide-cursor'); } };
+  // no accidental scrolling mid-fight: wheel, touch drags and scroll keys are swallowed, anything else is undone
+  const SCROLL_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
+  const onLockWheel = (e) => { if (E.focus) e.preventDefault(); };
+  const onLockKey = (e) => { if (E.focus && SCROLL_KEYS.includes(e.key) && !isUI(document.activeElement)) e.preventDefault(); };
+  const onLockScroll = () => { if (E.focus && Math.abs((window.scrollY || 0) - E.lockY) > 0.5) window.scrollTo(0, E.lockY); };
   if (E.game) {
     window.addEventListener('pointermove', onPtrMove, { passive: true });
     window.addEventListener('pointerdown', onPtrDown);
@@ -3171,6 +3475,8 @@ function createEngine(canvas, opts) {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('keydown', onKey); window.addEventListener('keyup', onKey);
     document.addEventListener('mouseout', onOut);
+    window.addEventListener('wheel', onLockWheel, { passive: false }); window.addEventListener('touchmove', onLockWheel, { passive: false });
+    window.addEventListener('keydown', onLockKey); window.addEventListener('scroll', onLockScroll);
   }
   // listeners
   const onMove = (e) => { E.mouse.tx = clamp(e.clientX / window.innerWidth * 2 - 1, -1, 1); E.mouse.ty = clamp(e.clientY / window.innerHeight * 2 - 1, -1, 1); };
@@ -3194,6 +3500,10 @@ function createEngine(canvas, opts) {
     /** the fisher hooks `button` and hauls the page back to the top */
     reelUp(button, opts) { return reelUp(button, opts); },
     resume() { E.userPaused = false; kick(); },
+    /** sound on/off (sound only plays after the visitor's first click or key press) */
+    mute(on) { if (E.sfx) E.sfx.setMuted(on !== false); }, get muted() { return E.sfx ? E.sfx.muted : true; },
+    /** sound level 0..1 (on top of mute) */
+    volume(v) { if (E.sfx) E.sfx.setLevel(v); }, get level() { return E.sfx ? E.sfx.level : 0; },
     destroy() {
       E.destroyed = true; if (E.raf) cancelAnimationFrame(E.raf); E.raf = 0;
       if (ro) ro.disconnect(); else window.removeEventListener('resize', onResize);
@@ -3203,9 +3513,12 @@ function createEngine(canvas, opts) {
       window.removeEventListener('pointermove', onPtrMove); window.removeEventListener('pointerdown', onPtrDown);
       window.removeEventListener('pointerup', onPtrUp); window.removeEventListener('pointercancel', onPtrUp); window.removeEventListener('blur', onPtrUp);
       window.removeEventListener('mousedown', onMouseDown); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey);
-      document.removeEventListener('mouseout', onOut); root.classList.remove('rf-hide-cursor');
+      document.removeEventListener('mouseout', onOut); root.classList.remove('rf-hide-cursor', 'rf-focus');
+      window.removeEventListener('wheel', onLockWheel); window.removeEventListener('touchmove', onLockWheel);
+      window.removeEventListener('keydown', onLockKey); window.removeEventListener('scroll', onLockScroll);
       if (E.card) { E.card.el.remove(); E.card = null; }
       if (E.hint) { E.hint.remove(); E.hint = null; }
+      if (E.sfx) { E.sfx.close(); E.sfx = null; } E.loops = {};
       if (mq && mq.removeEventListener) mq.removeEventListener('change', onMq);
       clearTimeout(rebuildTimer);
       E.L = null; E.sp = null; E.fsCanvas = null;
@@ -3221,7 +3534,8 @@ function createEngine(canvas, opts) {
       get state() { return E.game.state; }, get progress() { return E.game.mg ? E.game.mg.p : 0; }, get fish() { return E.game.fish; }, get clock() { return E.game.clock; }, get mg() { return E.game.mg; },
       pointAt(x, y) { E.game.cursor = [x, y]; E.game.ptrMouse = true; },
       click() { gameDown(E.game); }, get catch() { return E.game.catch; }, forceCatch(kind) { E.game.forceKind = kind; }, press() { E.game.hold = true; }, release() { E.game.hold = false; },
-      step(sec) { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) { E.acc += 1 / 60; const cur = E.game.cursor; updateGame(E, 1 / 60, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); E.game.cursor = cur; } draw(); syncCard(); syncHint(); },
+      step(sec) { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) { E.acc += 1 / 60; const cur = E.game.cursor; updateGame(E, 1 / 60, ((E.acc + o.startTime) % LOOP + LOOP) % LOOP); E.game.cursor = cur; playSfx(1 / 60); } draw(); syncCard(); syncHint(); },
+      get sounds() { return E.sfx ? { audio: E.sfx.state(), muted: E.sfx.muted, played: E.sfx.played.slice(), loaded: Object.keys(E.sfx.files).filter((k) => E.sfx.files[k]), media: Object.keys(E.sfx.media) } : null; },
     },
   };
 }
@@ -3282,6 +3596,11 @@ const API = {
   pause() { if (current) current.pause(); },
   reelUp(button, opts) { return current ? current.reelUp(button, opts) : (window.scrollTo({ top: window.innerHeight, behavior: 'smooth' }), Promise.resolve()); },
   resume() { if (current) current.resume(); },
+  mute(on) { if (current) current.mute(on); },
+  volume(v) { if (current) current.volume(v); },
+  /** a picture of one catch (canvas) and its label, for listing the catches outside the scene */
+  catchArt(kind, size) { return catchArt(kind, size || 96); },
+  labelOf(kind) { return CATCHES[kind] ? CATCHES[kind].label : null; },
   destroy() { if (current) { current.destroy(); current = null; } },
   get instance() { return current; },
   /** create an independent instance (several canvases on one page) */

@@ -2,7 +2,7 @@
 
 A hand-painted, anime-style river scene drawn entirely in code (Canvas 2D, no image assets) that sits behind the portfolio hero, and that visitors can fish in.
 
-- **Fishing game:** the cursor is the bob. Click the water to cast. When the float plunges, click to hook, then hold the mouse (or Space) to keep the fish inside the green bar.
+- **Fishing game:** the cursor is the bob. Click the water to cast. When a fish pulls the float under it hooks itself ("!"), then hold the mouse (or Space) to keep the fish inside the green bar.
 - **Fun facts:** every catch is a fun fact. Most catches are fish, and every so often a bowl of jjajangmyeon, a note in a bottle or an old viola turns up instead. Each fact comes up once before any repeats.
 - **Reel-up arrow:** the arrow at the bottom of the hero gets hooked, and after a struggle the fisher hauls the page content up into view.
 - **Reduced motion:** visitors with reduced motion turned on, or `interactive: false`, get a passive 60-second loop.
@@ -44,6 +44,7 @@ RiverFisher.init(document.getElementById('river'), {
 RiverFisher.init(canvas, { quality: 'high' | 'low', interactive: true, hideCursor: true, facts, onCatch, heroHeight })
 RiverFisher.reelUp(button, { to })   // `to`: an element or a scroll position (default: bottom of the hero)
 RiverFisher.pause(); RiverFisher.resume(); RiverFisher.destroy();
+RiverFisher.mute(true | false)        // sound (synthesised, starts after the first click); options: sound: false, muted: true
 ```
 
 Links, buttons, inputs and anything marked `data-rf-ignore` keep normal clicks and cursor.
