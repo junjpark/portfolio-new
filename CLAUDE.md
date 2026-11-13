@@ -52,7 +52,7 @@ Everything outside the canvas borrows from the scene's fact card and how-to bubb
 ### Work board
 `WORK` in `index.html` is an array of `{ src, w, h, kicker, title, href, badge }`, in reading order (top-left to bottom-right). `w`/`h` must match the image's real pixel size. Tiles are dealt round-robin into 1–3 columns by width, so the order reads row by row. `href` turns a tile into a link: case studies (`projects/<slug>.html`) open in the same tab, external `http(s)` URLs in a new one. `badge` adds a thin gold ring and a small label; League of Legends is badged "Current project".
 
-Current order: People's Voice Survey Dashboard, Mobility Project, tailor, GrubU, League of Legends Game Review (badged), Revitalizing Filipino Heritage Through AR, ReBalance, LeetCode 1v1, cory.
+Current order: People's Voice Survey Dashboard, Mobility Project, tailor, GrubU, League of Legends Game Review (badged), Revitalizing Filipino Heritage Through AR, ReBalance, LeetCode 1v1, cory, JobFinder.
 
 ### Case-study pages
 Every page shares the same markup, top to bottom:
@@ -66,7 +66,7 @@ Every page shares the same markup, top to bottom:
 
 Placeholders are `<span class="todo">…</span>`, rendered as dashed boxes reading "To fill in: …". Find them with `grep -n 'class="todo"' projects/*.html`.
 
-Slugs: `peoples-voice-dashboard`, `mobility-project`, `tailor`, `grubu`, `league-game-review`, `filipino-heritage-ar`, `rebalance`, `leetcode-1v1`, `cory`.
+Slugs: `peoples-voice-dashboard`, `mobility-project`, `tailor`, `grubu`, `league-game-review`, `filipino-heritage-ar`, `rebalance`, `leetcode-1v1`, `cory`, `job-finder`.
 
 Content status:
 Overview, What I built and Outcome were written on Nov 10, 2026 from each project's local repo (`~/pvs`, `~/mobility`, `~/tailorApp`, `~/GrubU`, `~/LC1v1`, `~/cory`), `~/lol-game-review/docs` and the resume. Claims the code contradicts were left out.
@@ -77,6 +77,7 @@ Every page is now complete: no `todo` placeholders left (Nov 10, 2026). Outcomes
 - **LeetCode 1v1:** repo `https://github.com/jaximus808/leetcode1v1`, demo `https://youtu.be/VtCdXGf0Moc` (recorded Nov 10, 2026 from a local rebuild: the hosted Supabase is gone, so the Dec 2025 backup was restored into a local Supabase; JS submissions fail on Judge0 1.13's Node 12, Python works). Framed as a learning project; next step is benchmarking a monolith version against the microservices. The resume's "collaborative editor, <100ms" claim is not in the code and was left off.
 - **Mobility:** May–Oct 2025, 2025 Digital Transformation Summer Corps, for a WashU psychology research team. Demo video (`https://youtu.be/YfGq-YWDpqI`) and final presentation (`projects/Mobility Project Presentation.pdf`) linked as buttons; slide 2 is the deck's ETL diagram, rendered from the PDF.
 - **GrubU:** repo `https://github.com/junjpark/grubu`, demo `https://youtu.be/Z_NUT5ZfQmk` (two-simulator recording, 1.5x). Overview opens with the 500-meal-point transfer cap. Photos 2–5 are Justin's diagrams: architecture, user flows, payment flow, order flow. Payment and order-state text follows those diagrams (pre-authorized hold, 30-min auto-release, disputes; pending → … → completed), which are newer than the local `~/GrubU` copy.
+- **JobFinder:** added Nov 13, 2026, written from the public docs of `~/job_finder` (GitHub `junjpark/job_finder`); `private/` was not read. Board tile and photo 1 = Justin's promo image (`work/job-finder.jpg`); 2 = `docs/architecture.png`; 3 = SMS thread; 4 = hourly report email; 5 = the Google Sheet tab. Outcome still has a `todo` for results.
 - **cory:** team project; Outcome is what Justin learned. Photo 2 is an architecture diagram drawn from the repo (`~/cory`) in the hand-drawn style of the LeetCode 1v1 sketch.
 - **Filipino Heritage AR ("Kawa"):** Spring 2026; written from `projects/Filipino Heritage AR Report.pdf` and `… Presentation.pdf` ; both are linked as buttons ("Read the report", "Presentation"). Photos: 2 = the deck's architecture slide, 3 = the report's Figure 2 pipeline (cropped and padded to 16:9). The deck's pose-estimation slide was tried and removed at Justin's request. No app was built.
 - **ReBalance:** repo `https://github.com/junjpark/rebalance` (GitHub button). March 2026, WashU × New Balance Hackathon winner, badged on the board; Outcome is that one line. Photos 2–5 were recorded Nov 10, 2026 by running the `returns` branch locally on Justin's own photos of his Fresh Foam X Hierro v9: 2 = returns GIF from My Account to a Trade-In verdict, 3 = damage scan GIF, 4 = scan result on the sole, 5 = verdict still. There is no wear-heatmap UI in any branch (`main` stubs it); a drawn wear map was tried and removed at Justin's request. Recorded with Gemini 3.5 Flash (2.5 Flash is closed to new keys), so wording may differ from the hackathon build. Written from `~/rebalance-repo` (GitHub `junjpark/rebalance`): `main` is the shoe-wear skeleton; `scanning` adds the Gemini damage scan (`backend/scan.py`); `returns` adds the refund/trade-in check (`/api/assess-return`); `mschulist-backend` moves the scan into the FastAPI/SQLModel API.
