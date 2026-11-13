@@ -19,7 +19,7 @@
   <section class="intro">
     <p class="kicker">Data visualization</p>
     <h1>People's Voice Survey Dashboard</h1>
-    <p class="summary">An interactive public health dashboard for exploring People’s Voice Survey results, built for researchers and policymakers.</p>
+    <p class="summary">An interactive public health dashboard for exploring People's Voice Survey results, built for researchers and policymakers.</p>
     <div class="links">
       <a class="btn primary" href="https://quest.wustl.edu/pvs" target="_blank" rel="noopener">Visit the site<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
@@ -48,7 +48,7 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p>The People’s Voice Survey asks adults around the world about their experiences with, expectations of and confidence in their health systems. It’s run by the QuEST Network with partner organizations in each country.</p>
+      <p>The People's Voice Survey asks adults around the world about their experiences with, expectations of and confidence in their health systems. The QuEST Network runs it with partner organizations in each country.</p>
       <p>This dashboard puts the results on a map, so researchers and policymakers can explore them by country, US state or census region, and by survey year, then compare places and years side by side.</p>
     </div>
   </section>
@@ -58,8 +58,8 @@
       <ul>
         <li><strong>Interactive map.</strong> A Mapbox map of countries, US states and census regions. Click a place to load its results, or color the map by any of about 40 health indicators.</li>
         <li><strong>Charts.</strong> Five D3 chart types (pie, bar, stacked bar, a scatter across survey waves, and a chart of the change between waves), each broken down by demographic group.</li>
-        <li><strong>Honest numbers.</strong> Every figure is weighted by the survey’s sampling weights and shown with a 95% confidence interval.</li>
-        <li><strong>Side-by-side comparison.</strong> Two views next to each other to compare regions or years, such as the US against the UK. Years with no data are greyed out before you pick them.</li>
+        <li><strong>Weighted estimates.</strong> Every figure uses the survey's sampling weights and shows a 95% confidence interval.</li>
+        <li><strong>Side-by-side comparison.</strong> Two views sit next to each other to compare regions or years, such as the US against the UK. The year picker greys out years with no data.</li>
         <li><strong>Fast backend.</strong> A FastAPI service filters the survey in PostgreSQL by place and year, so the browser only receives the rows it needs. This cut chart load times from minutes to under two seconds.</li>
         <li><strong>Sharing.</strong> Export any view as a PDF.</li>
       </ul>
@@ -72,7 +72,7 @@
         <li><b>350+</b><span>researchers and policymakers</span></li>
         <li><b>&lt;2s</b><span>visualization load time, down from minutes</span></li>
       </ul>
-      <p>Launched publicly at quest.wustl.edu and presented at the 2025 Science for Health Systems Conference.</p>
+      <p>The dashboard is public at quest.wustl.edu and was presented at the 2025 Science for Health Systems Conference.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

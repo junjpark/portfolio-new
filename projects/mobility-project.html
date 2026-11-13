@@ -48,16 +48,16 @@
     <h2>Overview</h2>
     <div>
       <p>Psychology researchers at WashU wanted to know how the way people move reflects how they behave: where students go on Friday nights, or whether mobility patterns relate to GPA. Movement can say a lot about social integration, academic success and mental health.</p>
-      <p>The data to answer those questions was fragmented. GPS, WiFi and Bluetooth records from WashU and Dartmouth came in incompatible formats, schemas and coordinate systems, so nothing could be analyzed together. Over WashU’s 2025 Digital Transformation Summer Corps, our team of three built a data pipeline and a web app that turn those traces into trips researchers can filter, replay and route on an interactive map.</p>
+      <p>The data to answer those questions was fragmented. GPS, WiFi and Bluetooth records from WashU and Dartmouth came in incompatible formats, schemas and coordinate systems, so researchers couldn't analyze them together. Over WashU's 2025 Digital Transformation Summer Corps, our team of three built a data pipeline and a web app that turn those traces into trips researchers can filter, replay and route on an interactive map.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li><strong>Data pipeline.</strong> A Python ETL that extracts, transforms, validates and enriches each data source, then writes everything into one GeoParquet format built for fast loading, fast queries and small files. User identifiers are hashed for privacy, and Excel and CSV uploads are converted too.</li>
+        <li><strong>Data pipeline.</strong> A Python ETL that extracts, transforms, validates and enriches each data source, then writes everything into one GeoParquet format built for fast loading, fast queries and small files. It hashes user identifiers for privacy and converts Excel and CSV uploads too.</li>
         <li><strong>Spatial API.</strong> A Flask API for uploading files, querying trips inside a map area, filtering by time, gender, school year or custom fields, and exporting the filtered data for deeper analysis, with pagination and caching.</li>
-        <li><strong>Trips on real roads.</strong> Raw GPS points are snapped onto streets with OSRM map-matching. An offline job matches routes concurrently in batches and caches them, so the map doesn’t wait on the routing service.</li>
+        <li><strong>Trips on real roads.</strong> OSRM map-matching snaps raw GPS points onto streets. An offline job matches routes concurrently in batches and caches them, so the map doesn't wait on the routing service.</li>
         <li><strong>Map interface.</strong> A React and Mapbox GL front end that replays trips as a timelapse with the camera following along, shows how often each route is used, and matches stops to nearby points of interest.</li>
       </ul>
     </div>
@@ -66,7 +66,7 @@
     <h2>Outcome</h2>
     <div>
       <p>The biggest lesson was how to work with messy, unclear data. The sources came in different formats (GPS tracks from one study, WiFi connection logs from another, and spreadsheets), and raw GPS points drift off the streets. Most of the work was turning all of that into one consistent schema the research team could explore on a map.</p>
-      <p>The pipeline and the map were built to be reused with other mobility datasets. Next steps for the platform were more visualization options, an easier interface and data analysis features.</p>
+      <p>We built the pipeline and the map to work with other mobility datasets. Next steps for the platform were more visualization options, an easier interface and data analysis features.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">

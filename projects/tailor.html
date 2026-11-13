@@ -49,17 +49,17 @@
     <h2>Overview</h2>
     <div>
       <p>Shopping for clothes online means guessing how something will look on you. tailor is a mobile app for discovering clothes: you swipe through items like a dating app, save the ones you like, and see an AI-generated picture of yourself wearing them, one piece at a time or as a full outfit.</p>
-      <p>People want shopping to feel personal: McKinsey’s 2022 research found that 71% expect personalized experiences and 76% get frustrated when they don’t get them. tailor is built around four steps: customize your profile, swipe, collect what you like, and visualize it on yourself.</p>
+      <p>People want shopping to feel personal. McKinsey's 2022 research found that 71% expect personalized experiences and 76% get frustrated when they don't get them. tailor has four steps: customize your profile, swipe, collect what you like, and visualize it on yourself.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li><strong>Virtual try-on.</strong> The app sends your profile photo and the clothing image to Google’s Gemini image model, with your height and skin tone in the prompt and an instruction to keep your face recognizable. It saves the result to your profile. It works for single items and for whole outfits.</li>
-        <li><strong>Swipe feed.</strong> A card deck of real products from a retail catalog, mixed across random categories, filtered by your price range and refreshed live when you change it, with haptic feedback on every swipe.</li>
+        <li><strong>Virtual try-on.</strong> The app sends your profile photo and the clothing image to Google's Gemini image model, with your height and skin tone in the prompt and an instruction to keep your face recognizable. It saves the result to your profile. It works for single items and for whole outfits.</li>
+        <li><strong>Swipe feed.</strong> A card deck shows real products from a retail catalog, mixed across random categories and filtered by your price range. It refreshes when you change the range, with haptic feedback on every swipe.</li>
         <li><strong>Fits.</strong> Combine liked items into saved outfits with a running total price and links to each store page.</li>
-        <li><strong>Accounts and profile.</strong> Firebase sign-up with a profile photo; preferences for price range, style, skin tone, height and favorite brands; likes and saved outfits stored in Firestore and generated images in Firebase Storage.</li>
+        <li><strong>Accounts and profile.</strong> Firebase handles sign-up with a profile photo. The profile stores preferences for price range, style, skin tone, height and favorite brands. Firestore keeps likes and saved outfits, and Firebase Storage keeps generated images.</li>
       </ul>
     </div>
   </section>

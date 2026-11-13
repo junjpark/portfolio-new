@@ -30,7 +30,7 @@
         <img src="../work/job-finder.jpg" alt="JobFinder: new grad roles, minutes after they post. A phone shows the text thread: a report of three new roles, a reply picking two of them, and a confirmation, with notifications for two more roles and finished resumes" width="2000" height="1250">
         <img src="img/job-finder/2.jpg" alt="Architecture diagram: Simplify lists, YC companies and my own list build a daily watchlist of 5,106 boards; finder.py on a Lightsail server checks about 500 job boards every 5 minutes, filters for entry-level US software roles posted in the last 24 hours, stores role numbers in SQLite, and sends new roles to an SNS topic (email and text) and a Google Sheet; text replies come back through an SQS queue, and picks go to a resume workflow on my Mac that drafts three resumes and a benchmark, then ranks them with a blind recruiter" width="1600" height="900" loading="lazy">
         <img src="img/job-finder/3.jpg" alt="Text thread with JobFinder: a report of three new roles numbered 214 to 216, my reply 214 216, a confirmation that Riot Games and Beli were picked for resumes, and an hour later a report of two more roles" width="924" height="2000" loading="lazy">
-        <img src="img/job-finder/4.jpg" alt="Hourly report email: JobFinder: 18 new roles #77–94, each with company, title, location, pay and a link to the company's own job posting" width="2000" height="1262" loading="lazy">
+        <img src="img/job-finder/4.jpg" alt="Hourly report email titled 'JobFinder: 18 new roles #77–94', listing each role with company, title, location, pay and a link to the company's own job posting" width="2000" height="1262" loading="lazy">
         <img src="img/job-finder/5.jpg" alt="Google Sheet tab 'job finder' listing each role's number, the time it was found, company, title and location" width="2000" height="915" loading="lazy">
       </div>
       <button class="arrow prev" type="button" aria-label="Previous photo"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -45,20 +45,20 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p>For entry-level roles, applying early matters. Most students watch the public new-grad and internship lists, but when I compared 29 new listings against each job’s publish time on the company’s own board, the lists trailed by a median of 6.3 hours, and some by 15 days.</p>
-      <p>JobFinder skips the middleman. It reads companies’ own job boards directly, decides which postings are genuinely new, entry-level, technical and in the US, and texts and emails me a summary at most once an hour. I text back the numbers of the roles I want.</p>
+      <p>For entry-level roles, applying early matters. Most students watch the public new-grad and internship lists, but when I compared 29 new listings against each job's publish time on the company's own board, the lists trailed by a median of 6.3 hours, and some by 15 days.</p>
+      <p>JobFinder reads companies' own job boards instead. It decides which postings are new, entry-level, technical and in the US, and texts and emails me a summary at most once an hour. I text back the numbers of the roles I want.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li><strong>A watchlist of ~5,100 job boards.</strong> Rebuilt daily from three sources: the boards named in Simplify’s listing history (about 4,200 companies that have hired new grads), Y Combinator companies whose board names it guesses on Ashby, Greenhouse, Lever and Breezy (about 840 more), and my own list. It covers 17 kinds of job-board services, including Greenhouse, Lever, Ashby, Workday and the custom careers sites of EA, Microsoft, Netflix and Valve.</li>
-        <li><strong>Polling that stays polite.</strong> Checking every board every 5 minutes would be about 1.5 million requests a day, so the 300 most important boards are checked every 5 minutes and the rest every 2 hours in rotating slices. One check reads about 500 boards with 16 threads in roughly a minute.</li>
-        <li><strong>Seven rules for “new”.</strong> A role is reported only if it’s never been seen, the board itself dates it within the last 24 hours, the title is entry-level and technical, the location is in the US (so “Bengaluru, IN” isn’t mistaken for Indiana), the description names real software tools, and the company hasn’t posted the same title in the last 90 days.</li>
+        <li><strong>A watchlist of about 5,100 job boards.</strong> JobFinder rebuilds it daily from three sources: the boards named in Simplify's listing history (about 4,200 companies that have hired new grads), Y Combinator companies whose board names it guesses on Ashby, Greenhouse, Lever and Breezy (about 840 more), and my own list. It covers 17 kinds of job-board services, including Greenhouse, Lever, Ashby, Workday and the custom careers sites of EA, Microsoft, Netflix and Valve.</li>
+        <li><strong>Polling that stays polite.</strong> Checking every board every 5 minutes would be about 1.5 million requests a day, so it checks the 300 most important boards every 5 minutes and the rest every 2 hours in rotating slices. One check reads about 500 boards with 16 threads in about a minute.</li>
+        <li><strong>Seven rules for "new".</strong> JobFinder reports a role only if it hasn't seen it before, the board itself dates it within the last 24 hours, the title is entry-level and technical, the location is in the US (so "Bengaluru, IN" isn't mistaken for Indiana), the description names real software tools, and the company hasn't posted the same title in the last 90 days.</li>
         <li><strong>Texts in, texts out, no open ports.</strong> One SNS publish sends both the text and the email. Replies to a toll-free number go through SNS into an SQS queue that the service long-polls, so nothing on the internet can reach the server directly. It accepts replies only from my number, and each AWS credential can do one job and nothing else.</li>
-        <li><strong>Built to survive thousands of strangers’ servers.</strong> An error on one board is logged and skipped, never stopping the check. A built-in self-test covers the main cases, and a code review plus two adversarial test runs found 13 problems, all fixed.</li>
-        <li><strong>From pick to resume.</strong> Roles I pick feed a resume workflow: an agent drafts three tailored one-page resumes using only confirmed facts, writes a benchmark resume for a fictional candidate, fact-checks every claim, and has a blind “recruiter” score all four.</li>
+        <li><strong>One broken board can't stop a check.</strong> JobFinder logs an error on one board, skips it and moves on. A built-in self-test covers the main cases, and a code review plus two adversarial test runs found 13 problems, which I fixed.</li>
+        <li><strong>From pick to resume.</strong> Roles I pick feed a resume workflow: an agent drafts three tailored one-page resumes using only confirmed facts, writes a benchmark resume for a fictional candidate, fact-checks every claim, and has a blind "recruiter" score all four.</li>
       </ul>
     </div>
   </section>
@@ -70,13 +70,12 @@
         <li><b>5 min</b><span>between checks of the top 300</span></li>
         <li><b>$7</b><span>a month to run</span></li>
       </ul>
-      <p>JobFinder runs as a single Python file, written against the standard library, as a systemd service on a $7-a-month Lightsail server. It uses almost no CPU, since nearly all of each check is waiting for job boards to answer.</p>
-      <p><span class="todo">results: roles found, how much earlier than the public lists, applications or interviews it led to, or what you learned</span></p>
+      <p>JobFinder is a single Python file that uses only the standard library. It runs as a systemd service on a $7-a-month Lightsail server and uses almost no CPU, since each check spends nearly all its time waiting for job boards to answer.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">
     <a class="prev" href="cory.html"><small>← Previous</small><strong>cory</strong></a>
-    <a class="next" href="peoples-voice-dashboard.html"><small>Next →</small><strong>People’s Voice Survey Dashboard</strong></a>
+    <a class="next" href="peoples-voice-dashboard.html"><small>Next →</small><strong>People's Voice Survey Dashboard</strong></a>
   </nav>
 </main>
 <script src="slideshow.js"></script>

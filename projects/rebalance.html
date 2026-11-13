@@ -34,7 +34,7 @@
         <img src="img/rebalance/2.gif" alt="Animated demo of the returns flow: from the My Account page, open Returns, pick the Fresh Foam X Hierro v9 order, upload six photos of the shoe, and get a Trade-In Voucher verdict with 92% confidence and the issues found" width="1100" height="688" loading="lazy">
         <img src="img/rebalance/3.gif" alt="Animated demo of the damage scan: six photos are uploaded and analyzed, and every area of the shoe gets a damage card with a type, a confidence bar and a short note" width="1100" height="688" loading="lazy">
         <img src="img/rebalance/4.jpg" alt="Damage scan result on the sole photo: a box marks tread wear on the toe outsole at 85% confidence, next to scored cards for all six areas of the shoe" width="1440" height="900" loading="lazy">
-        <img src="img/rebalance/5.jpg" alt="Return verdict screen: Trade-In Voucher, condition Fair, 92% confidence, with Gemini’s assessment and a list of issues such as tread wear and scuffs on the toe guard" width="1440" height="900" loading="lazy">
+        <img src="img/rebalance/5.jpg" alt="Return verdict screen: Trade-In Voucher, condition Fair, 92% confidence, with Gemini's assessment and a list of issues such as tread wear and scuffs on the toe guard" width="1440" height="900" loading="lazy">
         <!-- More photos: add <img src="img/rebalance/2.jpg" alt="…" loading="lazy"> lines here. Arrows and dots appear once there are two or more. -->
       </div>
       <button class="arrow prev" type="button" aria-label="Previous photo"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -49,7 +49,7 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p>How a shoe wears down says a lot about how it’s been used. ReBalance reads that wear from photos. Take six pictures of a shoe, and it maps where the shoe is damaged or worn (toe box, sides, heel and outsole), then uses the same scan to decide what a returned pair is worth: a full refund, a trade-in voucher, or not eligible.</p>
+      <p>How a shoe wears down says a lot about how it's been used. ReBalance reads that wear from photos. Take six pictures of a shoe, and it maps where the shoe is damaged or worn on the toe box, sides, heel and outsole. It then uses the same scan to decide what a returned pair earns: a full refund, a trade-in voucher or nothing.</p>
       <p>We built it for the WashU × New Balance Hackathon. The original idea also used sole wear to spot overpronation or underpronation and recommend shoes.</p>
     </div>
   </section>
@@ -57,10 +57,10 @@
     <h2>What I built</h2>
     <div>
       <ul>
-        <li><strong>Damage scan with Gemini.</strong> A guided six-photo capture, with an animation showing each angle. Gemini 2.5 Flash checks one area of the shoe in each photo against four criteria (tears, heavy wear, sole wear and missing parts). For each area it returns whether it’s damaged, a confidence score, the damage type, a short note and a tight box around the damage. The boxes are drawn over the photos, colored by confidence, with a summary of where damage shows up most.</li>
-        <li><strong>AI returns check.</strong> In a New Balance–style account page, pick an order, photograph the shoe, and Gemini returns a verdict (full refund, trade-in voucher or not eligible) with a confidence score, a condition grade, its reasoning and the issues it found. The prompt tells Gemini that a shoe’s factory colors aren’t stains, so colorful designs aren’t marked down.</li>
-        <li><strong>Reliable model output.</strong> Gemini answers in JSON mode, and results are validated against typed schemas. Its 0–1000 box coordinates are converted to percentages for the overlays. Rate limits return a clear message, and a shoe is still saved if the model call fails.</li>
-        <li><strong>Shoe history API</strong> (built by a teammate). A FastAPI and SQLModel backend that stores each shoe, its six photos and the scan result for every photo, so wear can be tracked over time. My scan plugs into it.</li>
+        <li><strong>Damage scan with Gemini.</strong> A guided capture walks you through six photos, with an animation for each angle. Gemini 2.5 Flash checks one area of the shoe in each photo against four criteria (tears, heavy wear, sole wear and missing parts). For each area it returns whether it's damaged, a confidence score, the damage type, a short note and a tight box around the damage. The app draws the boxes over the photos, colored by confidence, and sums up where damage shows up most.</li>
+        <li><strong>AI returns check.</strong> In a New Balance–style account page, pick an order, photograph the shoe, and Gemini returns a verdict (full refund, trade-in voucher or not eligible) with a confidence score, a condition grade, its reasoning and the issues it found. The prompt tells Gemini that a shoe's factory colors aren't stains, so colorful designs aren't marked down.</li>
+        <li><strong>Reliable model output.</strong> Gemini answers in JSON mode. The backend validates its results against typed schemas and converts its 0–1000 box coordinates to percentages for the overlays. A rate limit returns a clear message, and the app still saves the shoe if the model call fails.</li>
+        <li><strong>Shoe history API</strong> (built by a teammate). A FastAPI and SQLModel backend stores each shoe, its six photos and the scan result for every photo, so you can track wear over time. My scan plugs into it.</li>
       </ul>
     </div>
   </section>
@@ -68,7 +68,7 @@
     <h2>Outcome</h2>
     <div>
       <ul class="stats">
-        <li><b>WashU × New Balance Hackathon Winner</b></li>
+        <li><b>WashU × New Balance Hackathon winner</b></li>
       </ul>
     </div>
   </section>

@@ -48,17 +48,17 @@
   <section class="block">
     <h2>Overview</h2>
     <div>
-      <p>Tinikling is a traditional Filipino folk dance where dancers step quickly between clapping bamboo poles. It takes at least four people (two dancers and two on the poles), eight-foot poles and a large floor. In my 16-person Tinikling act for WashU’s Lunar New Year Festival, finding a time and a room for everyone pushed us into late-night practices, and one member broke an ankle a month before the show.</p>
-      <p><em>Kawa</em> (short for bamboo in Tagalog) is my proposal for a “magic mirror” AR app that lets one dancer practice alone. Prop a phone on a tripod, and the screen shows you with virtual bamboo poles clapping on your floor in time with the music. The project is a feasibility study and a pitch; the app itself hasn’t been built.</p>
+      <p>Tinikling is a traditional Filipino folk dance where dancers step quickly between clapping bamboo poles. It takes at least four people (two dancers and two on the poles), eight-foot poles and a large floor. In my 16-person Tinikling act for WashU's Lunar New Year Festival, finding a time and a room for everyone pushed us into late-night practices, and one member broke an ankle a month before the show.</p>
+      <p><em>Kawa</em> (short for bamboo in Tagalog) is my proposal for a "magic mirror" AR app that lets one dancer practice alone. Prop a phone on a tripod, and the screen shows you with virtual bamboo poles clapping on your floor in time with the music. The project is a feasibility study and a pitch. I haven't built the app.</p>
     </div>
   </section>
   <section class="block">
     <h2>What I built</h2>
     <div>
       <ul>
-        <li><strong>The design.</strong> The phone’s AR engine (ARKit or ARCore) finds the floor and anchors the poles to it, while MediaPipe’s BlazePose model tracks the dancer’s body on the device. Stepping on a pole triggers a buzz on a smartwatch and a sharp “clack” from the phone, and the step is marked in a replay of the session.</li>
-        <li><strong>A stack chosen by decision matrix.</strong> React Native with Expo over Flutter or two native apps, for reach across iOS and Android. MediaPipe with native AR over iOS-only body tracking or a server-side pose model. AWS and PostgreSQL for structured choreography and session data, with Firebase for sign-in and sync.</li>
-        <li><strong>A latency budget.</strong> At 60 frames per second, each frame gets 16.67 ms, and pose estimation is estimated at about 5 ms of that. All vision runs on the device, rendering runs on its own thread, and vision frames are dropped under load (closer to UDP than TCP), so the poles and the music never fall out of sync.</li>
+        <li><strong>The design.</strong> The phone's AR engine (ARKit or ARCore) finds the floor and anchors the poles to it, while MediaPipe's BlazePose model tracks the dancer's body on the device. Stepping on a pole triggers a buzz on a smartwatch and a sharp "clack" from the phone, and the session replay marks the step.</li>
+        <li><strong>A stack chosen by decision matrix.</strong> The matrix picked React Native with Expo over Flutter or two native apps, so one codebase covers iOS and Android, and MediaPipe with native AR over iOS-only body tracking or a server-side pose model. AWS and PostgreSQL hold choreography and session data, and Firebase handles sign-in and sync.</li>
+        <li><strong>A latency budget.</strong> At 60 frames per second, each frame gets 16.67 ms, and pose estimation should take about 5 ms of that. All vision runs on the device and rendering runs on its own thread. Under load the app drops vision frames, the way UDP drops packets, so the poles and the music never fall out of sync.</li>
         <li><strong>Tracking the feet.</strong> Collision checks use only the ankle, heel and toe landmarks, tested against 3D hitboxes set slightly smaller than the poles as a grace margin. A fast shutter speed and a lighting and background check during setup keep the footwork from blurring.</li>
       </ul>
     </div>
@@ -66,7 +66,7 @@
   <section class="block">
     <h2>Outcome</h2>
     <div>
-      <p>The feasibility report concludes that current phones can meet the dance’s timing demands and recommends building a minimum viable product: the AR overlay and the pose pipeline first, then alpha testing with WashU Tinikling dancers to tune how forgiving the hitboxes feel.</p>
+      <p>The feasibility report concludes that current phones can meet the dance's timing demands and recommends building a minimum viable product: the AR overlay and the pose pipeline first, then alpha testing with WashU Tinikling dancers to tune how forgiving the hitboxes feel.</p>
     </div>
   </section>
   <nav class="more" aria-label="More projects">
