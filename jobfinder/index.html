@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JobFinder alerts</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:560px;margin:48px auto;padding:0 16px;color:#111;background:#fff}
+label{display:block;margin:16px 0 6px;font-weight:600}input[type=tel]{width:100%;padding:10px;font:inherit;border:1px solid #888;border-radius:6px}
+.consent{display:flex;gap:10px;align-items:flex-start;margin:18px 0;font-size:14px}button{padding:10px 18px;font:inherit;border:0;border-radius:6px;background:#111;color:#fff}
+small{color:#555}</style></head><body>
+<h1>JobFinder job alerts</h1>
+<p>JobFinder is a personal tool that texts me new entry-level software job postings, at most once an hour.</p>
+<form onsubmit="event.preventDefault()">
+  <label for="phone">Mobile number</label>
+  <input id="phone" type="tel" placeholder="+1 555 555 0123" required>
+  <div class="consent"><input id="ok" type="checkbox" required>
+    <label for="ok" style="margin:0;font-weight:400">I agree to receive JobFinder job-alert texts from +1 (877) 856-6296, up to 24 messages per day.
+    Message and data rates may apply. Reply HELP for help, STOP to cancel.</label></div>
+  <button type="submit">Subscribe</button>
+</form>
+<p><small><a href="/jobfinder/privacy">Privacy policy</a> · <a href="/jobfinder/terms">Terms</a> · Contact: junjpark02@gmail.com</small></p>
+</body></html>

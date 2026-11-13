@@ -22,6 +22,7 @@ The hero sits on top of **The River Fisher**, a hand-painted, anime-style river 
 | `sounds/`               | Sound files listed under `sounds` in `RiverFisher.init`: `nibbles.m4a` (3 bites, trimmed from Justin's 14 s clip), `bob-dip.mp3`, `fish-fight.m4a` (first 2 s of Justin's clip), `cast.m4a` + `reel-in.m4a` (2–4.4 s and 16–23 s of a fishing-rod recording), `fling.m4a` (1–4 s of a splash recording), `reel-release.m4a`, `float-landing.mp3`, `escape.m4a` (14 s to the end of Justin's escape clip), `catch-and-reveal.mp3`, `put-in-basket.mp3` |
 | `catches/`              | Image-based catches, listed under `catchImages` (see `catches/README.md`). Currently `overwatch.svg` |
 | `icons/`                | White logos for the hero's icon buttons: `github.svg`, `linkedin.png`, `mail.svg` (see `icons/README.md`) |
+| `jobfinder/`            | SMS opt-in page for Justin's JobFinder tool, plus `privacy/` and `terms/` (required by the carrier registration; text supplied by Justin, use as-is). Not linked from the portfolio |
 | `resume.pdf`            | Resume, linked from the "View Resume" button |
 
 ## Running locally
